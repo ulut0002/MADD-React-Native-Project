@@ -1,18 +1,49 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { formatDateForCalendar, retrieveData } from "../util/util";
+import { retrieveData, storeData } from "../util/util";
 import { STORAGE_KEYS } from "../util/constants";
 import { DateTime } from "luxon";
+import { useColorScheme } from "react-native";
+import { useImmer } from "use-immer";
+import uuid from "react-native-uuid";
 
 const AppContext = createContext();
 
 function AppProvider({ children }) {
-  const [people, setPeople] = useState([]);
-  const [gifts, setGifts] = useState([]);
+  const [people, setPeople] = useImmer([]);
+  const [gifts, setGifts] = useImmer([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataError, setDataError] = useState(null);
 
   const [currentPersonName, setCurrentPersonName] = useState("");
   const [currentPersonDOB, setCurrentPersonDOB] = useState(null);
+  const [colorScheme, setColorScheme] = useState("light");
+  const colorSchemeObj = useColorScheme();
 
-  const addPerson = async (payload) => {
+  // set color scheme. Default scheme = light
+  useEffect(() => {
+    setColorScheme(
+      colorScheme === "dark" ? setColorScheme("dark") : setColorScheme("light")
+    );
+  }, [colorSchemeObj]);
+
+  const addPerson = async () => {
+    if (!currentPersonName || !currentPersonDOB) {
+      console.log("return");
+    }
+
+    const newPerson = {
+      id: uuid.v4(),
+      name: currentPersonName,
+      dob: currentPersonDOB,
+      gifts: [],
+    };
+
+    console.log("newPerson", newPerson);
+
+    try {
+    } catch (error) {
+      // set
+    }
     console.log("add a new person");
   };
 
@@ -36,27 +67,43 @@ function AppProvider({ children }) {
     console.log("edit gift");
   };
 
-  useEffect(() => {
-    const initApp = () => {
-      console.log("App initialized");
-      peoplePromise = retrieveData(STORAGE_KEYS.PEOPLE);
-      giftsPromise = retrieveData(STORAGE_KEYS.GIFTS);
-      Promise.all([peoplePromise, giftsPromise])
-        .then((values) => {
-          setPeople(values[1] ? values[0] : []);
-          setGifts(values[1] ? values[1] : []);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      // default values
-      setCurrentPersonDOB(DateTime.now());
-      //   formatDateForCalendar(DateTime.now());
-    };
-    initApp();
-  }, []);
+  const clearErrorMessage = () => {
+    setDataError("");
+  };
 
-  // add function here
+  // Loads data from storage. Usage: 1) Initialization, 2) Refresh list
+  const loadFromStorage = () => {
+    setDataLoading(true);
+    setDataError(null);
+    peoplePromise = retrieveData(STORAGE_KEYS.PEOPLE);
+    giftsPromise = retrieveData(STORAGE_KEYS.GIFTS);
+    Promise.all([peoplePromise, giftsPromise])
+      .then((values) => {
+        setPeople((draft) => {
+          console.log("people", values[0]);
+          draft = values[0] ? values[0] : [];
+        });
+        setGifts((draft) => {
+          draft = values[1] ? values[1] : [];
+        });
+        setDataLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setDataError(err.message || "An unexpected error happened");
+      });
+  };
+
+  // loading default values for available screens. Initialization only.
+  const loadDefaultValues = async () => {
+    setCurrentPersonDOB(DateTime.now());
+  };
+
+  // app initialization - load all data from storage
+  useEffect(() => {
+    loadFromStorage();
+    loadDefaultValues();
+  }, []);
 
   return (
     <AppContext.Provider
@@ -70,6 +117,10 @@ function AppProvider({ children }) {
         currentPersonName,
         setCurrentPersonDOB,
         setCurrentPersonName,
+        clearErrorMessage,
+        dataLoading,
+        dataError,
+        colorScheme,
       }}
     >
       {children}

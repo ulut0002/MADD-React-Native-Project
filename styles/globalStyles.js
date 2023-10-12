@@ -1,5 +1,10 @@
 import { StyleSheet } from "react-native";
 
+const Colors = {
+  light: {},
+  dark: {},
+};
+
 export default styles = StyleSheet.create({
   input: {
     height: 40,

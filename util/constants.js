@@ -1,6 +1,9 @@
 const STORAGE_KEYS = {
-  PEOPLE: "People",
-  GIFTS: "Gifts",
+  PEOPLE: "PEOPLE",
+  GIFTS: "GIFTS",
+  APP_SETTINGS: "APP_SETTINGS",
 };
 
-export { STORAGE_KEYS };
+const FALLBACK = {};
+
+export { STORAGE_KEYS, FALLBACK };

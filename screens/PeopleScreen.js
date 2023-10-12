@@ -1,9 +1,10 @@
-import React from "react";
-import { View, StyleSheet, Text, FlatList, Button } from "react-native";
+import React, { useEffect } from "react";
+import { View, StyleSheet, Text, FlatList, Platform } from "react-native";
 import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { Button } from "react-native-paper";
 
 const PeopleScreen = () => {
   const { people } = useApp();
@@ -12,7 +13,13 @@ const PeopleScreen = () => {
 
   const renderItem = (item) => {
     // implement
+    console.log("item", item);
+    return item.id;
   };
+
+  useEffect(() => {
+    console.log("people", people);
+  }, [people]);
 
   return (
     <View
@@ -32,12 +39,17 @@ const PeopleScreen = () => {
         ListEmptyComponent={<EmptyList text={"Press + to add people"} />}
       ></FlatList>
 
-      <Button
-        title="Add (TODO)"
-        onPress={() => {
-          navigation.navigate("AddPeople");
-        }}
-      ></Button>
+      {/* TODO: FOB button*/}
+      {!Platform.OS && (
+        <Button
+          title="Add (TODO)"
+          onPress={() => {
+            navigation.navigate("AddPeople");
+          }}
+        >
+          Add (TODO)
+        </Button>
+      )}
     </View>
   );
 };

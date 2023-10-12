@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Text,
   KeyboardAvoidingView,
-  Button,
   TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +12,7 @@ import globalStyles from "../styles/globalStyles";
 import DatePicker from "react-native-modern-datepicker";
 import { createLuxonDate, formatDateForCalendar } from "../util/util";
 import { useApp } from "../context/appContext";
+import { Button } from "react-native-paper";
 
 const AddPeopleScreen = () => {
   const {
@@ -20,6 +20,7 @@ const AddPeopleScreen = () => {
     currentPersonName,
     setCurrentPersonDOB,
     setCurrentPersonName,
+    addPerson,
   } = useApp();
 
   const insets = useSafeAreaInsets();
@@ -27,10 +28,6 @@ const AddPeopleScreen = () => {
   const [selectedDate, setSelectedDate] = useState(
     formatDateForCalendar(currentPersonDOB)
   );
-
-  useEffect(() => {
-    console.log("selectedDate", selectedDate);
-  }, [selectedDate]);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -70,9 +67,13 @@ const AddPeopleScreen = () => {
       <Button
         title="Add Person"
         onPress={() => {
-          navigation.navigate("Home");
+          // navigation.navigate("Home");
+          addPerson();
         }}
-      ></Button>
+        disabled={!currentPersonName || !selectedDate}
+      >
+        Add {currentPersonName}
+      </Button>
     </KeyboardAvoidingView>
   );
 };
