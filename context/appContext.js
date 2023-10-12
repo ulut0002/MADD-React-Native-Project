@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { retrieveData } from "../util/util";
+import { formatDateForCalendar, retrieveData } from "../util/util";
 import { STORAGE_KEYS } from "../util/constants";
+import { DateTime } from "luxon";
 
 const AppContext = createContext();
 
 function AppProvider({ children }) {
   const [people, setPeople] = useState([]);
   const [gifts, setGifts] = useState([]);
+
+  const [currentPersonName, setCurrentPersonName] = useState("");
+  const [currentPersonDOB, setCurrentPersonDOB] = useState(null);
 
   const addPerson = async (payload) => {
     console.log("add a new person");
@@ -45,6 +49,9 @@ function AppProvider({ children }) {
         .catch((err) => {
           console.log(err);
         });
+      // default values
+      setCurrentPersonDOB(DateTime.now());
+      //   formatDateForCalendar(DateTime.now());
     };
     initApp();
   }, []);
@@ -59,6 +66,10 @@ function AppProvider({ children }) {
         addPerson,
         deletePerson,
         updatePerson,
+        currentPersonDOB,
+        currentPersonName,
+        setCurrentPersonDOB,
+        setCurrentPersonName,
       }}
     >
       {children}

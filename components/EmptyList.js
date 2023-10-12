@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet, Text } from "react-native";
 
-const EmptyList = () => {
+const EmptyList = ({ text }) => {
   return (
     <View>
-      <Text>List is empty</Text>
+      <Text>{text}</Text>
     </View>
   );
 };
