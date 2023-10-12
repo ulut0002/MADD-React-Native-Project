@@ -7,19 +7,21 @@ import { useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
 
 const PeopleScreen = () => {
-  const { people } = useApp();
+  const { people, dataLoading } = useApp();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
-  const renderItem = (item) => {
-    // implement
-    console.log("item", item);
-    return item.id;
-  };
-
   useEffect(() => {
     console.log("people", people);
+    for (let index = 0; index < people.length; index++) {
+      const element = people[index];
+      console.log(element);
+    }
   }, [people]);
+
+  const renderItem = (item) => {
+    return <Text>{item.id}</Text>;
+  };
 
   return (
     <View
@@ -32,10 +34,12 @@ const PeopleScreen = () => {
       }}
     >
       <Text>People</Text>
+      {dataLoading && <Text>Loading</Text>}
+
       <FlatList
         data={people}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item, index }) => renderItem(item)}
         ListEmptyComponent={<EmptyList text={"Press + to add people"} />}
       ></FlatList>
 

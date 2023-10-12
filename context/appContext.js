@@ -3,14 +3,15 @@ import { retrieveData, storeData } from "../util/util";
 import { STORAGE_KEYS } from "../util/constants";
 import { DateTime } from "luxon";
 import { useColorScheme } from "react-native";
-import { useImmer } from "use-immer";
+
 import uuid from "react-native-uuid";
+import { isArray } from "lodash";
 
 const AppContext = createContext();
 
 function AppProvider({ children }) {
-  const [people, setPeople] = useImmer([]);
-  const [gifts, setGifts] = useImmer([]);
+  const [people, setPeople] = useState([]);
+  const [gifts, setGifts] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [dataError, setDataError] = useState(null);
 
@@ -38,13 +39,16 @@ function AppProvider({ children }) {
       gifts: [],
     };
 
-    console.log("newPerson", newPerson);
+    setPeople((draft) => {
+      // draft.push(newPerson);
+    });
 
     try {
+      await storeData(STORAGE_KEYS.PEOPLE, people);
     } catch (error) {
-      // set
+      console.log("error", error);
     }
-    console.log("add a new person");
+    console.log("Done");
   };
 
   const deletePerson = async (payload) => {
@@ -72,26 +76,25 @@ function AppProvider({ children }) {
   };
 
   // Loads data from storage. Usage: 1) Initialization, 2) Refresh list
-  const loadFromStorage = () => {
+  const loadFromStorage = async () => {
     setDataLoading(true);
     setDataError(null);
     peoplePromise = retrieveData(STORAGE_KEYS.PEOPLE);
     giftsPromise = retrieveData(STORAGE_KEYS.GIFTS);
-    Promise.all([peoplePromise, giftsPromise])
-      .then((values) => {
-        setPeople((draft) => {
-          console.log("people", values[0]);
-          draft = values[0] ? values[0] : [];
-        });
-        setGifts((draft) => {
-          draft = values[1] ? values[1] : [];
-        });
-        setDataLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setDataError(err.message || "An unexpected error happened");
-      });
+    try {
+      const [peopleValues, giftValues] = await Promise.all([
+        peoplePromise,
+        giftsPromise,
+      ]);
+      setPeople(peopleValues);
+      setGifts(giftValues);
+
+      setDataLoading(false);
+      setDataError(null);
+    } catch (error) {
+      console.log(error);
+      setDataError(error.message || "An unexpected error happened");
+    }
   };
 
   // loading default values for available screens. Initialization only.

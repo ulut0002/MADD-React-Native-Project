@@ -33,7 +33,7 @@ const AddPeopleScreen = () => {
     setSelectedDate(date);
     const luxonDate = createLuxonDate(date);
     setCurrentPersonDOB(luxonDate);
-    console.log("handleDateChange", date, luxonDate);
+    // console.log("handleDateChange", date, luxonDate);
   };
 
   return (
