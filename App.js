@@ -17,9 +17,9 @@ export default function App({ navigation }) {
   const Stack = createNativeStackNavigator();
 
   return (
-    <AppProvider>
-      <PaperProvider>
-        <NavigationContainer>
+    <NavigationContainer>
+      <AppProvider>
+        <PaperProvider>
           <Stack.Navigator initialRouteName="Home">
             <Stack.Screen
               name="Home"
@@ -46,9 +46,9 @@ export default function App({ navigation }) {
               component={AddIdeaScreen}
             ></Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
-      </PaperProvider>
-    </AppProvider>
+        </PaperProvider>
+      </AppProvider>
+    </NavigationContainer>
   );
 }
 

@@ -3,6 +3,8 @@ import { retrieveData, storeData } from "../util/util";
 import { STORAGE_KEYS } from "../util/constants";
 import { DateTime } from "luxon";
 import { useColorScheme } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import _ from "lodash";
 
 import uuid from "react-native-uuid";
 import { isArray } from "lodash";
@@ -19,6 +21,7 @@ function AppProvider({ children }) {
   const [currentPersonDOB, setCurrentPersonDOB] = useState(null);
   const [colorScheme, setColorScheme] = useState("light");
   const colorSchemeObj = useColorScheme();
+  const navigation = useNavigation();
 
   // set color scheme. Default scheme = light
   useEffect(() => {
@@ -27,9 +30,20 @@ function AppProvider({ children }) {
     );
   }, [colorSchemeObj]);
 
+  /**
+   *  Add a new person to the people's list with blank gift array.
+   *  - Add new object to array-copy
+   *  - store the array data in Async storage
+   *  - clear out form values
+   *  - update people state object
+   *  - navigate to home screen. (the list will be updated)
+   *
+   *  If the process fails, stay on the same screen and display an error message
+   */
   const addPerson = async () => {
     if (!currentPersonName || !currentPersonDOB) {
       console.log("return");
+      return;
     }
 
     const newPerson = {
@@ -39,16 +53,19 @@ function AppProvider({ children }) {
       gifts: [],
     };
 
-    setPeople((draft) => {
-      // draft.push(newPerson);
-    });
+    const peopleCopy = _.cloneDeep(people);
+    peopleCopy.push(newPerson);
 
     try {
-      await storeData(STORAGE_KEYS.PEOPLE, people);
+      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+      setCurrentPersonDOB(null);
+      setCurrentPersonName("");
+      setPeople(peopleCopy);
+      navigation.navigate("Home");
     } catch (error) {
+      // TODO: set error
       console.log("error", error);
     }
-    console.log("Done");
   };
 
   const deletePerson = async (payload) => {

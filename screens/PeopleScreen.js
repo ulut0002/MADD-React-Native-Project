@@ -11,16 +11,16 @@ const PeopleScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    console.log("people", people);
-    for (let index = 0; index < people.length; index++) {
-      const element = people[index];
-      console.log(element);
-    }
-  }, [people]);
+  // useEffect(() => {
+  //   console.log("people", people);
+  //   for (let index = 0; index < people.length; index++) {
+  //     const element = people[index];
+  //     console.log(element);
+  //   }
+  // }, [people]);
 
   const renderItem = (item) => {
-    return <Text>{item.id}</Text>;
+    return <Text>{item.name}</Text>;
   };
 
   return (

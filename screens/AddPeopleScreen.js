@@ -65,7 +65,6 @@ const AddPeopleScreen = () => {
       </View>
 
       <Button
-        title="Add Person"
         onPress={() => {
           // navigation.navigate("Home");
           addPerson();
@@ -81,7 +80,3 @@ const AddPeopleScreen = () => {
 const styles = StyleSheet.create({});
 
 export default AddPeopleScreen;
-
-// maximumDate={formatDateForCalendar()}
-//          selected={formatDateForCalendar(newPersonDOB)}
-//   current={formatDateForCalendar(currentPersonDOB)}
