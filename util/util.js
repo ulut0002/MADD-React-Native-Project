@@ -45,6 +45,16 @@ const formatDateForCalendar = (sourceDate) => {
   return formattedDate;
 };
 
+const formatDate = (dt) => {
+  try {
+    const formattedValue = DateTime.fromFormat(dt, "MM/dd");
+    return formattedValue;
+  } catch (error) {
+    console.warn(error);
+    return "Unformatted";
+  }
+};
+
 const createLuxonDate = (value) => {
   const timestamp = DateTime.fromFormat(value ? value : "", "yyyy/MM/dd");
   return timestamp;

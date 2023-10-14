@@ -15,7 +15,11 @@ function AppProvider({ children }) {
   const [people, setPeople] = useState([]);
   const [gifts, setGifts] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
-  const [dataError, setDataError] = useState(null);
+  const [dataError, setDataError] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [lastDeletedPerson, setLastDeletedPerson] = useState(null);
+  const [lastDeletedGifts, setLastDeletedGifts] = useState(null);
+  const [personToDelete, setPersonToDelete] = useState("");
 
   const [currentPersonName, setCurrentPersonName] = useState("");
   const [currentPersonDOB, setCurrentPersonDOB] = useState(null);
@@ -29,6 +33,18 @@ function AppProvider({ children }) {
       colorScheme === "dark" ? setColorScheme("dark") : setColorScheme("light")
     );
   }, [colorSchemeObj]);
+
+  const undoLastDelete = () => {};
+
+  const clearLastDelete = () => {};
+
+  /**
+   *
+   *
+   */
+  const toggleModal = () => {
+    setModalVisible(!modalVisible);
+  };
 
   /**
    *  Add a new person to the people's list with blank gift array.
@@ -68,10 +84,41 @@ function AppProvider({ children }) {
     }
   };
 
+  /**
+   * @parameter personId
+   *
+   * 1. Find the person in the array list, delete, update state and async storage
+   * 2. Do the same thing for the gift items whose personId = parameter
+   */
   const deletePerson = async (payload) => {
-    console.log("remove a person");
+    const { id: personId } = payload;
+    console.log("personid", payload);
+
+    if (!personId) return;
+
+    const newPeopleList = people.filter((person) => {
+      person.id !== personId;
+    });
+
+    const newGiftList = gifts.filter((gift) => {
+      gift.personId !== personId;
+    });
+
+    try {
+      await storeData(STORAGE_KEYS.PEOPLE, newPeopleList);
+      await storeData(STORAGE_KEYS.GIFTS, newGiftList);
+      setPeople(newPeopleList);
+      setGifts(newGiftList);
+    } catch (error) {
+      // TODO: set error state
+      console.warn(error);
+    }
   };
 
+  /**
+   *
+   * @param  payload
+   */
   const updatePerson = async (payload) => {
     console.log("edit person");
   };
@@ -95,7 +142,8 @@ function AppProvider({ children }) {
   // Loads data from storage. Usage: 1) Initialization, 2) Refresh list
   const loadFromStorage = async () => {
     setDataLoading(true);
-    setDataError(null);
+    setDataError("");
+
     peoplePromise = retrieveData(STORAGE_KEYS.PEOPLE);
     giftsPromise = retrieveData(STORAGE_KEYS.GIFTS);
     try {
@@ -103,11 +151,11 @@ function AppProvider({ children }) {
         peoplePromise,
         giftsPromise,
       ]);
-      setPeople(peopleValues);
-      setGifts(giftValues);
+      setPeople(peopleValues ? peopleValues : []);
+      setGifts(giftValues ? giftValues : []);
 
       setDataLoading(false);
-      setDataError(null);
+      setDataError("");
     } catch (error) {
       console.log(error);
       setDataError(error.message || "An unexpected error happened");
@@ -141,6 +189,13 @@ function AppProvider({ children }) {
         dataLoading,
         dataError,
         colorScheme,
+        toggleModal,
+        undoLastDelete,
+        lastDeletedPerson,
+        modalVisible,
+        setModalVisible,
+        personToDelete,
+        setPersonToDelete,
       }}
     >
       {children}
