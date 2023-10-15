@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { retrieveData, storeData } from "../util/util";
+import { retrieveData, sortPeopleArrayByDate, storeData } from "../util/util";
 import { STORAGE_KEYS } from "../util/constants";
 import { DateTime } from "luxon";
 import { useColorScheme } from "react-native";
@@ -21,8 +21,19 @@ function AppProvider({ children }) {
   const [lastDeletedGifts, setLastDeletedGifts] = useState(null);
   const [personToDelete, setPersonToDelete] = useState("");
 
-  const [currentPersonName, setCurrentPersonName] = useState("");
-  const [currentPersonDOB, setCurrentPersonDOB] = useState(null);
+  const [currentPersonId, setCurrentPersonId] = useState("");
+
+  const [currentPerson, setCurrentPerson] = useState({
+    id: null,
+    name: "",
+    dob: null,
+  });
+
+  const [newPerson, setNewPerson] = useState({
+    name: "",
+    dob: null,
+  });
+
   const [colorScheme, setColorScheme] = useState("light");
   const colorSchemeObj = useColorScheme();
   const navigation = useNavigation();
@@ -34,9 +45,26 @@ function AppProvider({ children }) {
     );
   }, [colorSchemeObj]);
 
+  // When people array changes, sort it by birthday
+  useEffect(() => {}, [people]);
+
   const undoLastDelete = () => {};
 
-  const clearLastDelete = () => {};
+  const resetCurrentPerson = (id) => {
+    let person = null;
+
+    if (id) {
+      person = findPerson(id);
+    }
+
+    if (!person) {
+      setCurrentPersonId(null);
+      setCurrentPerson(null);
+      return;
+    }
+    setCurrentPersonId(person.id); //
+    setCurrentPerson({ ...person });
+  };
 
   /**
    *
@@ -44,6 +72,11 @@ function AppProvider({ children }) {
    */
   const toggleModal = () => {
     setModalVisible(!modalVisible);
+  };
+
+  const findPerson = (id) => {
+    const person = people.find((person) => person.id === id);
+    return person;
   };
 
   /**
@@ -57,25 +90,35 @@ function AppProvider({ children }) {
    *  If the process fails, stay on the same screen and display an error message
    */
   const addPerson = async () => {
-    if (!currentPersonName || !currentPersonDOB) {
-      console.log("return");
-      return;
-    }
+    const newEntry = currentPerson.id === null;
 
     const newPerson = {
-      id: uuid.v4(),
-      name: currentPersonName,
-      dob: currentPersonDOB,
+      id: newEntry ? uuid.v4() : currentPerson.id,
+      name: currentPerson.name,
+      dob: currentPerson.dob,
       gifts: [],
     };
 
-    const peopleCopy = _.cloneDeep(people);
-    peopleCopy.push(newPerson);
+    let peopleCopy = _.cloneDeep(people);
+    if (newEntry) {
+      peopleCopy.push(newPerson);
+    } else {
+      peopleCopy = peopleCopy.map((person) => {
+        if (person.id === currentPerson.id) {
+          return {
+            ..._.cloneDeep(person),
+            name: currentPerson.name,
+            dob: currentPerson.dob,
+          };
+        } else {
+          return person;
+        }
+      });
+    }
 
     try {
       await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setCurrentPersonDOB(null);
-      setCurrentPersonName("");
+      setCurrentPerson(null);
       setPeople(peopleCopy);
       navigation.navigate("Home");
     } catch (error) {
@@ -151,20 +194,24 @@ function AppProvider({ children }) {
         peoplePromise,
         giftsPromise,
       ]);
-      setPeople(peopleValues ? peopleValues : []);
+      let peopleArr = peopleValues;
+      if (peopleValues && Array.isArray(peopleValues)) {
+        // peopleArr = sortPeopleArrayByDate(peopleValues);
+        sortPeopleArrayByDate(peopleArr);
+      }
+      setPeople(peopleArr ? peopleArr : []);
       setGifts(giftValues ? giftValues : []);
 
       setDataLoading(false);
-      setDataError("");
     } catch (error) {
       console.log(error);
-      setDataError(error.message || "An unexpected error happened");
+      setDataError(error.message || "Data could not be loaded.");
     }
   };
 
   // loading default values for available screens. Initialization only.
   const loadDefaultValues = async () => {
-    setCurrentPersonDOB(DateTime.now());
+    // setCurrentPersonDOB(DateTime.now());
   };
 
   // app initialization - load all data from storage
@@ -181,10 +228,7 @@ function AppProvider({ children }) {
         addPerson,
         deletePerson,
         updatePerson,
-        currentPersonDOB,
-        currentPersonName,
-        setCurrentPersonDOB,
-        setCurrentPersonName,
+
         clearErrorMessage,
         dataLoading,
         dataError,
@@ -196,6 +240,14 @@ function AppProvider({ children }) {
         setModalVisible,
         personToDelete,
         setPersonToDelete,
+        loadFromStorage,
+        findPerson,
+        currentPerson,
+        setCurrentPerson,
+        resetCurrentPerson,
+        newPerson,
+        setNewPerson,
+        currentPersonId,
       }}
     >
       {children}

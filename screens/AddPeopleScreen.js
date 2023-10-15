@@ -7,33 +7,66 @@ import {
   TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
 import globalStyles from "../styles/globalStyles";
 import DatePicker from "react-native-modern-datepicker";
 import { createLuxonDate, formatDateForCalendar } from "../util/util";
 import { useApp } from "../context/appContext";
 import { Button } from "react-native-paper";
+import { DateTime } from "luxon";
 
 const AddPeopleScreen = () => {
   const {
-    currentPersonDOB,
-    currentPersonName,
-    setCurrentPersonDOB,
-    setCurrentPersonName,
     addPerson,
+    findPerson,
+    currentPerson,
+    setCurrentPerson,
+    newPerson,
+    setNewPerson,
+    currentPersonId,
   } = useApp();
 
+  const [person, setPerson] = useState({ name: "", dob: "2024/01/01" });
+  const [DOB, setDOB] = useState();
+
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const [selectedDate, setSelectedDate] = useState(
-    formatDateForCalendar(currentPersonDOB)
-  );
+
+  useEffect(() => {
+    if (currentPersonId) {
+      // use current person
+    } else {
+      // use new person
+      setPerson({ ...newPerson });
+      let dt = newPerson.dob ? newPerson.dob : DateTime.now();
+      setDOB(formatDateForCalendar(dt));
+    }
+    return;
+
+    console.log("useeffect", currentPerson.newName || "Nope");
+    if (currentPerson.id) {
+      const formattedDate = formatDateForCalendar(currentPerson.newDob);
+      setDOB(formattedDate);
+      console.log("formattedDate", formattedDate);
+      setPerson({
+        ...currentPerson,
+        newName: currentPerson.name,
+        newDob: currentPerson.dob,
+      });
+    } else {
+      setPerson({ ...currentPerson });
+
+      console.log("currentPerson.newDob ", currentPerson.newDob);
+      let dt = currentPerson.newDob ? currentPerson.newDob : DateTime.now();
+      // const dt = DateTime.now();
+      setDOB(formatDateForCalendar(dt));
+    }
+  }, [currentPerson, newPerson, currentPersonId]);
 
   const handleDateChange = (date) => {
-    setSelectedDate(date);
-    const luxonDate = createLuxonDate(date);
-    setCurrentPersonDOB(luxonDate);
-    // console.log("handleDateChange", date, luxonDate);
+    if (currentPersonId) {
+    } else {
+      setNewPerson({ ...person, dob: createLuxonDate(date) });
+    }
+    // setCurrentPerson({ ...person, newDob: createLuxonDate(date) });
   };
 
   return (
@@ -50,18 +83,34 @@ const AddPeopleScreen = () => {
       <View style={[globalStyles.inputContainer]}>
         <Text style={[globalStyles.inputLabel]}>Name</Text>
         <TextInput
-          value={currentPersonName}
-          onChangeText={setCurrentPersonName}
+          value={person.name}
+          onChangeText={(value) => {
+            console.log("value", value);
+            // setPerson({ ...person, newName: value });
+            if (currentPersonId) {
+              setCurrentPerson({ ...person, name: value });
+            } else {
+              setNewPerson({ ...person, name: value });
+            }
+          }}
           style={[globalStyles.input]}
-          placeholder="Enter a name"
+          placeholder={"Enter a name"}
+          autoCapitalize="words"
+          autoComplete="off"
+          autoCorrect={false}
+          keyboardType="default"
         ></TextInput>
-        <DatePicker
-          mode="calendar"
-          isGregorian={true}
-          selected={selectedDate}
-          current={selectedDate}
-          onDateChange={(date) => handleDateChange(date)}
-        ></DatePicker>
+        {DOB && (
+          <DatePicker
+            mode="calendar"
+            isGregorian={true}
+            selected={DOB}
+            current={DOB}
+            onDateChange={(val) => {
+              handleDateChange(val);
+            }}
+          ></DatePicker>
+        )}
       </View>
 
       <Button
@@ -69,9 +118,9 @@ const AddPeopleScreen = () => {
           // navigation.navigate("Home");
           addPerson();
         }}
-        disabled={!currentPersonName || !selectedDate}
+        disabled={!person.name || !DOB}
       >
-        Add {currentPersonName}
+        {person.id ? "Save" : `Add ${person.name}`}
       </Button>
     </KeyboardAvoidingView>
   );

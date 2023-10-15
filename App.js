@@ -14,7 +14,7 @@ import {
 } from "./screens";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ModalAlert } from "./components";
+import { IOSAddButton, ModalAlert } from "./components";
 
 export default function App({ navigation }) {
   const Stack = createNativeStackNavigator();
@@ -30,15 +30,7 @@ export default function App({ navigation }) {
                   name="Home"
                   component={PeopleScreen}
                   options={({ navigation }) => ({
-                    headerRight: () =>
-                      Platform.OS ? (
-                        <Button
-                          icon={"plus"}
-                          onPress={() => {
-                            navigation.navigate("AddPeople");
-                          }}
-                        ></Button>
-                      ) : null,
+                    headerRight: () => (Platform.OS ? <IOSAddButton /> : null),
                   })}
                 ></Stack.Screen>
                 <Stack.Screen
@@ -67,3 +59,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+<Button
+  icon={"plus"}
+  onPress={() => {
+    navigation.navigate("AddPeople", {});
+  }}
+></Button>;

@@ -1,14 +1,6 @@
 import React, { Component } from "react";
-import {
-  Animated,
-  StyleSheet,
-  Text,
-  View,
-  I18nManager,
-  Alert,
-} from "react-native";
+import { Animated, StyleSheet, Alert } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
-import ModalAlert from "./ModalAlert";
 
 export default class SwipeableRow extends Component {
   renderLeftActions = (progress, dragX) => {
@@ -31,9 +23,7 @@ export default class SwipeableRow extends Component {
   deleteRow = () => {
     const { deletePerson, person } = this.props;
     const name = person.name || "this user";
-    const giftCount = Array.isArray(person.gifts)
-      ? this.state.person.gifts.length
-      : 0;
+    const giftCount = Array.isArray(person.gifts) ? person.gifts.length : 0;
 
     const giftCountText =
       giftCount === 0

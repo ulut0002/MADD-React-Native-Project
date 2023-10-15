@@ -6,6 +6,17 @@ const Colors = {
 };
 
 export default styles = StyleSheet.create({
+  screenTitle: {
+    fontWeight: "bold",
+    fontSize: 32,
+    paddingBottom: 12,
+  },
+
+  emptyList: {
+    fontSize: 24,
+    paddingBottom: 4,
+  },
+
   input: {
     height: 40,
     // margin: 12,

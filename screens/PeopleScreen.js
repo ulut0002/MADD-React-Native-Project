@@ -1,20 +1,33 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, Text, FlatList, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  Platform,
+  RefreshControl,
+  SectionList,
+} from "react-native";
 import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { Button, Modal } from "react-native-paper";
+import { ActivityIndicator, Button, Modal } from "react-native-paper";
 import { ModalAlert, PersonListItem } from "../components";
+import globalStyles from "../styles/globalStyles";
 
 const PeopleScreen = () => {
-  const { people, dataLoading, setModalVisible, setPersonToDelete } = useApp();
+  const { people, dataLoading, loadFromStorage } = useApp();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    loadFromStorage();
+  };
 
   const renderItem = (item) => {
     return <PersonListItem id={item.id} />;
-    // return <Text>AAA</Text>;
   };
 
   return (
@@ -27,24 +40,28 @@ const PeopleScreen = () => {
         flex: 1,
       }}
     >
-      <Text>People</Text>
-      {dataLoading && <Text>Loading</Text>}
-      <FlatList
-        data={people}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item, index }) => renderItem(item)}
-        ListEmptyComponent={<EmptyList text={"Press + to add people"} />}
-      ></FlatList>
+      <Text style={[globalStyles.screenTitle]}>Your List</Text>
+
+      {dataLoading && !refreshing && <ActivityIndicator />}
+
+      {!dataLoading && (
+        <FlatList
+          data={people}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item, index }) => renderItem(item)}
+          ListEmptyComponent={
+            <EmptyList
+              text={["Your list is empty.", "Press + to add people"]}
+            />
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        ></FlatList>
+      )}
+
       <ModalAlert />
-      <Button
-        title="Show Modal"
-        onPress={() => {
-          // setModalVisible(true);
-          // setPersonToDelete(Date.now());
-        }}
-      >
-        Show Modal
-      </Button>
+
       {/* TODO: FOB button*/}
       {!Platform.OS && (
         <Button

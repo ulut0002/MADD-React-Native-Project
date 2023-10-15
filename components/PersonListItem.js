@@ -1,21 +1,17 @@
 // source: https://snack.expo.dev/
 
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, Animated } from "react-native";
+import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useApp } from "../context/appContext";
 import { DateTime } from "luxon";
-import Swipeable from "react-native-gesture-handler/Swipeable";
-import { RectButton, TouchableOpacity } from "react-native-gesture-handler";
-import { Button } from "react-native-paper";
+
 import SwipeableRow from "./SwipeableRow";
+import { useNavigation } from "@react-navigation/native";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
-const Row = ({ item }) => {
-  return <RectButton></RectButton>;
-};
-
 const PersonListItem = ({ id }) => {
+  const navigation = useNavigation();
   const {
     gifts,
     people,
@@ -23,7 +19,11 @@ const PersonListItem = ({ id }) => {
     setPersonToDelete,
     personToDelete,
     modalVisible,
+    currentPersonId,
+    setCurrentPerson,
+    resetCurrentPerson,
   } = useApp();
+
   const [person, setPerson] = useState({});
   const [personGifts, setPersonGifts] = useState([]);
 
@@ -33,7 +33,6 @@ const PersonListItem = ({ id }) => {
     //find the data
     const person = people.find((person) => person.id === id);
     const personGifts = gifts.find((gift) => gift.personId === id);
-    // console.log("found person", person);
     setPerson(person ? person : {});
     setPersonGifts(personGifts ? personGifts : []);
   }, [id]);
@@ -55,11 +54,19 @@ const PersonListItem = ({ id }) => {
       personId={person.id}
       person={person}
     >
-      <View style={[styles.container]}>
+      <Pressable
+        style={[styles.container]}
+        onPress={() => {
+          console.log("go to details", person.id);
+          // setCurrentPerson(person);
+          resetCurrentPerson(person.id);
+          navigation.navigate("AddPeople", { personId: person.id });
+        }}
+      >
         <Text>{person.name || "Unnamed"}</Text>
         <Text>{formatDate(person.dob)}</Text>
         <Text>No. of Gifts: {personGifts.length || "Array.Length"}</Text>
-      </View>
+      </Pressable>
     </SwipeableRow>
   );
 };
