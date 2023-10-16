@@ -49,11 +49,11 @@ const formatDateForCalendar = (sourceDate) => {
 
 const formatDate = (dt) => {
   try {
-    const formattedValue = DateTime.fromFormat(dt, "MM/dd");
+    const formattedValue = DateTime.fromISO(dt).toFormat("MMM dd");
     return formattedValue;
   } catch (error) {
     console.warn(error);
-    return "Unformatted";
+    return "";
   }
 };
 
@@ -122,4 +122,5 @@ export {
   formatDateForCalendar,
   createLuxonDate,
   sortPeopleArrayByDate,
+  formatDate,
 };

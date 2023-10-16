@@ -13,7 +13,11 @@ import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { ActivityIndicator, Button, Modal } from "react-native-paper";
-import { ModalAlert, PersonListItem } from "../components";
+import {
+  ListSeparatorComponent,
+  ModalAlert,
+  PersonListItem,
+} from "../components";
 import globalStyles from "../styles/globalStyles";
 
 const PeopleScreen = () => {
@@ -49,6 +53,8 @@ const PeopleScreen = () => {
           data={people}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => renderItem(item)}
+          style={[globalStyles.peopleList]}
+          ItemSeparatorComponent={<ListSeparatorComponent />}
           ListEmptyComponent={
             <EmptyList
               text={["Your list is empty.", "Press + to add people"]}

@@ -1,6 +1,6 @@
 import AddIdeaScreen from "./AddIdeaScreen";
 import AddPeopleScreen from "./AddPeopleScreen";
-import IdeaScreen from "./IdeaScreen";
+import IdeasScreen from "./IdeasScreen";
 import PeopleScreen from "./PeopleScreen";
 
-export { AddIdeaScreen, IdeaScreen, PeopleScreen, AddPeopleScreen };
+export { AddIdeaScreen, IdeasScreen, PeopleScreen, AddPeopleScreen };

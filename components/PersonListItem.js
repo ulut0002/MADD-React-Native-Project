@@ -7,6 +7,9 @@ import { DateTime } from "luxon";
 
 import SwipeableRow from "./SwipeableRow";
 import { useNavigation } from "@react-navigation/native";
+import _ from "lodash";
+import { EMPTY_PERSON } from "../util/constants";
+import GiftSummary from "./GiftSummary";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
@@ -22,9 +25,10 @@ const PersonListItem = ({ id }) => {
     currentPersonId,
     setCurrentPerson,
     resetCurrentPerson,
+    setCurrentPersonId,
   } = useApp();
 
-  const [person, setPerson] = useState({});
+  const [person, setPerson] = useState(_.cloneDeep(EMPTY_PERSON));
   const [personGifts, setPersonGifts] = useState([]);
 
   const name = "";
@@ -33,8 +37,9 @@ const PersonListItem = ({ id }) => {
     //find the data
     const person = people.find((person) => person.id === id);
     const personGifts = gifts.find((gift) => gift.personId === id);
-    setPerson(person ? person : {});
+    setPerson(person ? _.cloneDeep(person) : {});
     setPersonGifts(personGifts ? personGifts : []);
+    console.log("{person.gifts.length", person.gifts);
   }, [id]);
 
   const formatDate = (dt) => {
@@ -48,6 +53,8 @@ const PersonListItem = ({ id }) => {
     }
   };
 
+  console.log("person", person);
+
   return (
     <SwipeableRow
       deletePerson={deletePerson}
@@ -57,15 +64,18 @@ const PersonListItem = ({ id }) => {
       <Pressable
         style={[styles.container]}
         onPress={() => {
-          console.log("go to details", person.id);
+          // console.log("go to details", person.id);
           // setCurrentPerson(person);
-          resetCurrentPerson(person.id);
-          navigation.navigate("AddPeople", { personId: person.id });
+          // resetCurrentPerson(person.id);
+          setCurrentPerson(person);
+          setCurrentPersonId(person.id);
+          navigation.navigate("Ideas", { personId: person.id });
         }}
       >
-        <Text>{person.name || "Unnamed"}</Text>
-        <Text>{formatDate(person.dob)}</Text>
-        <Text>No. of Gifts: {personGifts.length || "Array.Length"}</Text>
+        <Text style={[styles.name]}>{person.name || "Unnamed"}</Text>
+        <View style={[styles.dobContainer]}>
+          <GiftSummary person={person} />
+        </View>
       </Pressable>
     </SwipeableRow>
   );
@@ -73,7 +83,24 @@ const PersonListItem = ({ id }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#93adc2",
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 12,
+    gap: 12,
+  },
+
+  name: {
+    fontWeight: "bold",
+    fontSize: 22,
+    paddingTop: 8,
+  },
+
+  dobContainer: {
+    paddingBottom: 8,
+    flexDirection: "row",
+    gap: 24,
   },
 });
 

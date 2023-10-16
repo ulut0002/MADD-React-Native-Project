@@ -34,4 +34,6 @@ export default styles = StyleSheet.create({
     gap: 4,
     margin: 12,
   },
+
+  peopleList: {},
 });

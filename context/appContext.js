@@ -1,13 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { retrieveData, sortPeopleArrayByDate, storeData } from "../util/util";
-import { STORAGE_KEYS } from "../util/constants";
+import { STORAGE_KEYS, EMPTY_PERSON } from "../util/constants";
 import { DateTime } from "luxon";
 import { useColorScheme } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
 
 import uuid from "react-native-uuid";
-import { isArray } from "lodash";
 
 const AppContext = createContext();
 
@@ -23,16 +22,8 @@ function AppProvider({ children }) {
 
   const [currentPersonId, setCurrentPersonId] = useState("");
 
-  const [currentPerson, setCurrentPerson] = useState({
-    id: null,
-    name: "",
-    dob: null,
-  });
-
-  const [newPerson, setNewPerson] = useState({
-    name: "",
-    dob: null,
-  });
+  const [currentPerson, setCurrentPerson] = useState(_.cloneDeep(EMPTY_PERSON));
+  const [newPerson, setNewPerson] = useState(_.cloneDeep(EMPTY_PERSON));
 
   const [colorScheme, setColorScheme] = useState("light");
   const colorSchemeObj = useColorScheme();
@@ -46,7 +37,15 @@ function AppProvider({ children }) {
   }, [colorSchemeObj]);
 
   // When people array changes, sort it by birthday
-  useEffect(() => {}, [people]);
+  useEffect(() => {
+    const cleanData = async () => {
+      return;
+      await storeData(STORAGE_KEYS.PEOPLE, null);
+      await storeData(STORAGE_KEYS.GIFTS, null);
+    };
+
+    cleanData();
+  }, []);
 
   const undoLastDelete = () => {};
 
@@ -90,35 +89,32 @@ function AppProvider({ children }) {
    *  If the process fails, stay on the same screen and display an error message
    */
   const addPerson = async () => {
-    const newEntry = currentPerson.id === null;
+    // console.log("new person", newPerson, currentPerson);
 
-    const newPerson = {
-      id: newEntry ? uuid.v4() : currentPerson.id,
-      name: currentPerson.name,
-      dob: currentPerson.dob,
+    const personToAdd = {
+      id: uuid.v4(),
+      name: newPerson.name,
+      dob: newPerson.dob,
       gifts: [],
     };
 
-    let peopleCopy = _.cloneDeep(people);
-    if (newEntry) {
-      peopleCopy.push(newPerson);
-    } else {
-      peopleCopy = peopleCopy.map((person) => {
-        if (person.id === currentPerson.id) {
-          return {
-            ..._.cloneDeep(person),
-            name: currentPerson.name,
-            dob: currentPerson.dob,
-          };
-        } else {
-          return person;
-        }
-      });
+    if (!personToAdd.id) {
+      //TODO: throw an error
     }
+    if (!personToAdd.name) {
+      //TODO: throw an error
+    }
+    if (!personToAdd.dob) {
+      //TODO: throw an error
+    }
+
+    let peopleCopy = _.cloneDeep(people);
+    peopleCopy.push(personToAdd);
 
     try {
       await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setCurrentPerson(null);
+      // setCurrentPerson(null);
+      setNewPerson({});
       setPeople(peopleCopy);
       navigation.navigate("Home");
     } catch (error) {
@@ -248,6 +244,7 @@ function AppProvider({ children }) {
         newPerson,
         setNewPerson,
         currentPersonId,
+        setCurrentPersonId,
       }}
     >
       {children}

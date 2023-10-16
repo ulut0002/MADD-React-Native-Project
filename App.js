@@ -9,12 +9,12 @@ import { RootSiblingParent } from "react-native-root-siblings";
 import {
   AddIdeaScreen,
   AddPeopleScreen,
-  IdeaScreen,
+  IdeasScreen,
   PeopleScreen,
 } from "./screens";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { IOSAddButton, ModalAlert } from "./components";
+import { IOSAddButton, IOSAddIdeaButton, ModalAlert } from "./components";
 
 export default function App({ navigation }) {
   const Stack = createNativeStackNavigator();
@@ -37,7 +37,14 @@ export default function App({ navigation }) {
                   name="AddPeople"
                   component={AddPeopleScreen}
                 ></Stack.Screen>
-                <Stack.Screen name="Idea" component={IdeaScreen}></Stack.Screen>
+                <Stack.Screen
+                  name="Ideas"
+                  component={IdeasScreen}
+                  options={({ navigation }) => ({
+                    headerRight: () =>
+                      Platform.OS ? <IOSAddIdeaButton /> : null,
+                  })}
+                ></Stack.Screen>
                 <Stack.Screen
                   name="AddIdea"
                   component={AddIdeaScreen}

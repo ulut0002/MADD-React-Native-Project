@@ -10,15 +10,18 @@ const IOSAddButton = () => {
 
   return (
     <Button
-      icon={"plus"}
       onPress={() => {
         resetCurrentPerson(null);
         navigation.navigate("AddPeople", {});
       }}
-    ></Button>
+    >
+      Add Person
+    </Button>
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {},
+});
 
 export default IOSAddButton;

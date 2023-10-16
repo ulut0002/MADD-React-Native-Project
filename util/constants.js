@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 const STORAGE_KEYS = {
   PEOPLE: "PEOPLE",
   GIFTS: "GIFTS",
@@ -11,4 +13,19 @@ const STATIC = {
 
 const FALLBACK = {};
 
-export { STORAGE_KEYS, FALLBACK, STATIC };
+const EMPTY_PERSON = {
+  id: null,
+  name: "",
+  dob: DateTime.now(),
+  gifts: [],
+};
+
+const EMPTY_GIFT = {
+  id: "",
+  text: "",
+  img: "",
+  width: 0,
+  height: 0,
+};
+
+export { STORAGE_KEYS, FALLBACK, STATIC, EMPTY_PERSON, EMPTY_GIFT };

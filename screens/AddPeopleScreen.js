@@ -13,6 +13,7 @@ import { createLuxonDate, formatDateForCalendar } from "../util/util";
 import { useApp } from "../context/appContext";
 import { Button } from "react-native-paper";
 import { DateTime } from "luxon";
+import { EMPTY_PERSON } from "../util/constants";
 
 const AddPeopleScreen = () => {
   const {
@@ -25,9 +26,8 @@ const AddPeopleScreen = () => {
     currentPersonId,
   } = useApp();
 
-  const [person, setPerson] = useState({ name: "", dob: "2024/01/01" });
+  const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [DOB, setDOB] = useState();
-
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -35,28 +35,9 @@ const AddPeopleScreen = () => {
       // use current person
     } else {
       // use new person
+
       setPerson({ ...newPerson });
       let dt = newPerson.dob ? newPerson.dob : DateTime.now();
-      setDOB(formatDateForCalendar(dt));
-    }
-    return;
-
-    console.log("useeffect", currentPerson.newName || "Nope");
-    if (currentPerson.id) {
-      const formattedDate = formatDateForCalendar(currentPerson.newDob);
-      setDOB(formattedDate);
-      console.log("formattedDate", formattedDate);
-      setPerson({
-        ...currentPerson,
-        newName: currentPerson.name,
-        newDob: currentPerson.dob,
-      });
-    } else {
-      setPerson({ ...currentPerson });
-
-      console.log("currentPerson.newDob ", currentPerson.newDob);
-      let dt = currentPerson.newDob ? currentPerson.newDob : DateTime.now();
-      // const dt = DateTime.now();
       setDOB(formatDateForCalendar(dt));
     }
   }, [currentPerson, newPerson, currentPersonId]);
@@ -85,12 +66,13 @@ const AddPeopleScreen = () => {
         <TextInput
           value={person.name}
           onChangeText={(value) => {
-            console.log("value", value);
             // setPerson({ ...person, newName: value });
             if (currentPersonId) {
               setCurrentPerson({ ...person, name: value });
             } else {
-              setNewPerson({ ...person, name: value });
+              const obj = { ...person, name: value };
+              console.log("obj", obj);
+              setNewPerson({ ...obj });
             }
           }}
           style={[globalStyles.input]}
@@ -116,6 +98,9 @@ const AddPeopleScreen = () => {
       <Button
         onPress={() => {
           // navigation.navigate("Home");
+          const obj = { ...person, dob: createLuxonDate(DOB) };
+          console.log("obj", obj);
+          setNewPerson(obj);
           addPerson();
         }}
         disabled={!person.name || !DOB}
