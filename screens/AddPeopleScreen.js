@@ -18,6 +18,7 @@ import { EMPTY_PERSON } from "../util/constants";
 const AddPeopleScreen = () => {
   const {
     addPerson,
+    deletePerson,
     findPerson,
     currentPerson,
     setCurrentPerson,
@@ -31,8 +32,11 @@ const AddPeopleScreen = () => {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    if (currentPersonId) {
+    if (currentPersonId && currentPerson) {
       // use current person
+      setPerson({ ...currentPerson });
+      let dt = newPerson.dob ? currentPerson.dob : DateTime.now();
+      setDOB(formatDateForCalendar(dt));
     } else {
       setPerson({ ...newPerson });
       let dt = newPerson.dob ? newPerson.dob : DateTime.now();
@@ -66,7 +70,9 @@ const AddPeopleScreen = () => {
           onChangeText={(value) => {
             // setPerson({ ...person, newName: value });
             if (currentPersonId) {
-              setCurrentPerson({ ...person, name: value });
+              const obj = { ...person, name: value };
+              setCurrentPerson({ ...obj });
+              setPerson({ ...obj });
             } else {
               const obj = { ...person, name: value };
               setPerson({ ...obj });
@@ -87,9 +93,15 @@ const AddPeopleScreen = () => {
             selected={DOB}
             current={DOB}
             onDateChange={(val) => {
-              const obj = { ...person, dob: createLuxonDate(val) };
-              setDOB(val);
-              setNewPerson(obj); // update context
+              if (currentPersonId) {
+                const obj = { ...person, dob: createLuxonDate(val) };
+                setDOB(val);
+                setCurrentPerson({ ...obj }); // update context
+              } else {
+                const obj = { ...person, dob: createLuxonDate(val) };
+                setDOB(val);
+                setNewPerson({ ...obj }); // update context
+              }
             }}
           ></DatePicker>
         )}
@@ -97,15 +109,20 @@ const AddPeopleScreen = () => {
 
       <Button
         onPress={() => {
-          // navigation.navigate("Home");
-          // const obj = { ...person, dob: createLuxonDate(DOB) };
-          // setNewPerson(obj);
           addPerson();
         }}
         disabled={!person.name || !DOB}
       >
-        {person.id ? "Save" : `Add ${person.name}`}
+        {person.id ? `Save` : `Add ${person.name}`}
       </Button>
+
+      {currentPersonId && (
+        <Button
+          onPress={() => {
+            deletePerson();
+          }}
+        >{`Delete`}</Button>
+      )}
     </KeyboardAvoidingView>
   );
 };

@@ -10,7 +10,7 @@ import { EmptyList, ListSeparatorComponent } from "../components";
 const IdeasScreen = ({ personId }) => {
   const insets = useSafeAreaInsets();
 
-  const { currentPersonId, findPerson } = useApp();
+  const { currentPersonId, findPerson, people } = useApp();
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -21,7 +21,7 @@ const IdeasScreen = ({ personId }) => {
     if (foundPerson) {
       setPerson({ ...foundPerson });
     }
-  }, [currentPersonId]);
+  }, [currentPersonId, people]);
 
   const renderItem = (item) => {
     return <Text>Item</Text>;

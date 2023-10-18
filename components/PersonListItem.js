@@ -40,7 +40,7 @@ const PersonListItem = ({ id }) => {
     const personGifts = gifts.find((gift) => gift.personId === id);
     setPerson(person ? _.cloneDeep(person) : {});
     setPersonGifts(personGifts ? personGifts : []);
-  }, [id]);
+  }, [id, people]); // do not remove people dependency
 
   const formatDate = (dt) => {
     try {

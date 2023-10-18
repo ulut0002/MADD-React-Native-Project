@@ -84,6 +84,7 @@ function AppProvider({ children }) {
     const person = people.find((person) => person.id === id);
     return person;
   };
+  const findGift = (personId, giftId) => {};
 
   /**
    *  Add a new person to the people's list with blank gift array.
@@ -142,13 +143,13 @@ function AppProvider({ children }) {
   // - push the array to Async Storage
   // - clear out state variable and navigate to Ideas screen
   const saveExistingPerson = async () => {
-    let personToAdd = {};
     const person = findPerson(currentPersonId);
     if (!person)
       throw new Error(`Person with id ${currentPersonId} is not found`);
-    personToAdd = { ...person };
 
-    let peopleCopy = people.map((person) => {
+    let peopleCopy = _.cloneDeep(people);
+
+    peopleCopy = peopleCopy.map((person) => {
       if (person.id === currentPersonId) {
         return { ...person, name: currentPerson.name, dob: currentPerson.dob };
       } else {
@@ -156,14 +157,15 @@ function AppProvider({ children }) {
       }
     });
 
+    // console.log("updated", peopleCopy[0]);
+
     peopleCopy = sortPeopleArrayByDate(peopleCopy);
 
     try {
       await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      // setCurrentPerson(null);
+      setPeople(_.cloneDeep(peopleCopy));
       setCurrentPersonId(null);
       setCurrentPerson({ ...EMPTY_PERSON });
-      setPeople(peopleCopy);
       navigation.navigate("Home");
     } catch (error) {
       // TODO: set error
@@ -177,24 +179,17 @@ function AppProvider({ children }) {
    * 1. Find the person in the array list, delete, update state and async storage
    * 2. Do the same thing for the gift items whose personId = parameter
    */
-  const deletePerson = async (payload) => {
-    const { id: personId } = payload;
+  const deletePerson = async () => {
+    if (!currentPersonId) {
+      throw new Error(`Person id is missing. Delete failed!`);
+    }
 
-    if (!personId) return;
-
-    const newPeopleList = people.filter((person) => {
-      person.id !== personId;
-    });
-
-    const newGiftList = gifts.filter((gift) => {
-      gift.personId !== personId;
-    });
+    let peopleCopy = people.filter((person) => person.id !== currentPersonId);
 
     try {
-      await storeData(STORAGE_KEYS.PEOPLE, newPeopleList);
-      await storeData(STORAGE_KEYS.GIFTS, newGiftList);
-      setPeople(newPeopleList);
-      setGifts(newGiftList);
+      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+      setPeople(peopleCopy);
+      navigation.navigate("Home");
     } catch (error) {
       // TODO: set error state
       console.warn(error);
@@ -219,15 +214,45 @@ function AppProvider({ children }) {
   };
 
   const addGift = async (payload) => {
-    console.log("add a new gift");
+    const { text, image } = payload;
+
+    if (!currentPersonId) {
+      throw new Error(`Unexpected error during adding a gift`);
+    }
+
+    const newPeople = people.map((person) => {
+      if (person.id === currentPersonId) {
+        const newPerson = _.cloneDeep(person);
+        const newGift = {
+          id: uuid.v4(),
+          text: text,
+          image: image,
+        };
+        newPerson.gifts.push(newGift);
+        return newPerson;
+      } else {
+        return person;
+      }
+    });
+
+    try {
+      await storeData(STORAGE_KEYS.PEOPLE, newPeople);
+      setPeople(newPeople);
+      navigation.navigate("Ideas");
+    } catch (error) {
+      // TODO: set error state
+      console.warn(error);
+    }
+
+    console.log("add a new gift", text);
   };
 
   const updateGift = async (payload) => {
-    console.log("delete a gift");
+    console.log("update gift");
   };
 
-  const editGift = async (payload) => {
-    console.log("edit gift");
+  const deleteGift = async (payload) => {
+    console.log("delete a gift");
   };
 
   const clearErrorMessage = () => {
@@ -302,6 +327,9 @@ function AppProvider({ children }) {
         currentPersonId,
         setCurrentPersonId,
         setContextCurrentPerson,
+        addGift,
+        deleteGift,
+        updateGift,
       }}
     >
       {children}

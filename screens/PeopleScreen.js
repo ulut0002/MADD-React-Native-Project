@@ -24,10 +24,25 @@ const PeopleScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
+  const [localPeople, setLocalPeople] = useState(people);
 
-  const onRefresh = () => {
+  useEffect(() => {
+    setLocalPeople(people);
+  }, [people]);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
     loadFromStorage();
-  };
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    loadFromStorage();
+  }, []);
+
+  // const onRefresh = () => {
+  //   loadFromStorage();
+  // };
 
   const renderItem = (item) => {
     return <PersonListItem id={item.id} />;
@@ -49,7 +64,7 @@ const PeopleScreen = () => {
 
       {!dataLoading && (
         <FlatList
-          data={people}
+          data={localPeople}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => renderItem(item)}
           style={[globalStyles.peopleList]}

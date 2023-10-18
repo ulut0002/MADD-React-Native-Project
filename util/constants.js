@@ -11,7 +11,11 @@ const STATIC = {
   PAST_BIRTHDAYS: "PAST_BIRTHDAYS",
 };
 
-const FALLBACK = {};
+const GIFT_IDEA_VIEW_MODE = {
+  NEW: "NEW",
+  PREVIEW: "PREVIEW_MODE",
+  EDIT: "EDIT_MODE",
+};
 
 const EMPTY_PERSON = {
   id: null,
@@ -23,9 +27,9 @@ const EMPTY_PERSON = {
 const EMPTY_GIFT = {
   id: "",
   text: "",
-  img: "",
+  image: "",
   width: 0,
   height: 0,
 };
 
-export { STORAGE_KEYS, FALLBACK, STATIC, EMPTY_PERSON, EMPTY_GIFT };
+export { STORAGE_KEYS, STATIC, EMPTY_PERSON, EMPTY_GIFT, GIFT_IDEA_VIEW_MODE };

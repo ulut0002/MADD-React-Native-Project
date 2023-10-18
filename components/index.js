@@ -7,6 +7,7 @@ import ListSeparatorComponent from "./ListSeparatorComponent";
 import ModalAlert from "./ModalAlert";
 import PersonListItem from "./PersonListItem";
 import SwipeableRow from "./SwipeableRow";
+import DisabledCameraView from "./DisabledCameraView";
 
 export {
   EmptyList,
@@ -18,4 +19,5 @@ export {
   IOSAddIdeaButton,
   GiftSummary,
   ListSeparatorComponent,
+  DisabledCameraView,
 };
