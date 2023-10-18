@@ -10,7 +10,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Giftr to access your camera."
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ],
       "expo-localization"
@@ -20,11 +21,15 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Want to access your microphone because...",
+        "NSPhotoLibraryUsageDescription": "Want to access your photo library because...",
+        "NSCameraUsageDescription": "Want to use your camera because...",
+        "NSLocationAlwaysUsageDescription": "We need to display your location on the home screen."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +38,13 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "READ_PHONE_STATE"
       ],
       "package": "com.serdarulutas.giftr"
     },

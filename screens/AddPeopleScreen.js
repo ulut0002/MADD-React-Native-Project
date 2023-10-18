@@ -14,6 +14,7 @@ import { useApp } from "../context/appContext";
 import { Button } from "react-native-paper";
 import { DateTime } from "luxon";
 import { EMPTY_PERSON } from "../util/constants";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const AddPeopleScreen = () => {
   const {
@@ -61,7 +62,6 @@ const AddPeopleScreen = () => {
         paddingRight: insets.right,
         flex: 1,
       }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={[globalStyles.inputContainer]}>
         <Text style={[globalStyles.inputLabel]}>Name</Text>
@@ -85,6 +85,7 @@ const AddPeopleScreen = () => {
           autoComplete="off"
           autoCorrect={false}
           keyboardType="default"
+          returnKeyType="next"
         ></TextInput>
         {DOB && (
           <DatePicker
@@ -113,7 +114,7 @@ const AddPeopleScreen = () => {
         }}
         disabled={!person.name || !DOB}
       >
-        {person.id ? `Save` : `Add ${person.name}`}
+        {person.id ? `Update Person` : `Add Person`}
       </Button>
 
       {currentPersonId && (

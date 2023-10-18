@@ -8,6 +8,8 @@ import ModalAlert from "./ModalAlert";
 import PersonListItem from "./PersonListItem";
 import SwipeableRow from "./SwipeableRow";
 import DisabledCameraView from "./DisabledCameraView";
+import GiftListItem from "./GiftListItem";
+import SwipeableGiftRow from "./SwipeableGiftRow";
 
 export {
   EmptyList,
@@ -20,4 +22,6 @@ export {
   GiftSummary,
   ListSeparatorComponent,
   DisabledCameraView,
+  GiftListItem,
+  SwipeableGiftRow,
 };

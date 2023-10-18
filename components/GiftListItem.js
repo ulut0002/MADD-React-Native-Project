@@ -8,14 +8,16 @@ import { DateTime } from "luxon";
 import SwipeableRow from "./SwipeableRow";
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
-import { EMPTY_PERSON } from "../util/constants";
+import { EMPTY_GIFT, EMPTY_PERSON } from "../util/constants";
 import GiftSummary from "./GiftSummary";
+import SwipeableGiftRow from "./SwipeableGiftRow";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
-const PersonListItem = ({ id }) => {
+const GiftListItem = ({ gift = { ...EMPTY_GIFT } }) => {
   const navigation = useNavigation();
   const {
+    gifts,
     people,
     deletePerson,
     setContextCurrentPerson,
@@ -23,34 +25,11 @@ const PersonListItem = ({ id }) => {
     setCurrentPersonId,
   } = useApp();
 
-  const [person, setPerson] = useState(_.cloneDeep(EMPTY_PERSON));
-  const [personGifts, setPersonGifts] = useState([]);
-
-  const name = "";
-
-  useEffect(() => {
-    //find the data
-    const person = people.find((person) => person.id === id);
-    const personGifts = person.gifts.find((gift) => gift.personId === id);
-    setPerson(person ? _.cloneDeep(person) : {});
-    setPersonGifts(personGifts ? personGifts : []);
-  }, [id, people]); // do not remove people dependency
-
-  const formatDate = (dt) => {
-    try {
-      const formattedValue = DateTime.fromISO(dt).toFormat("MMM - dd");
-      return formattedValue;
-    } catch (error) {
-      // console.warn(error);
-      return "DOB N/A";
-    }
-  };
-
   return (
-    <SwipeableRow
+    <SwipeableGiftRow
       deletePerson={deletePerson}
-      personId={person.id}
-      person={person}
+      personId={gift.id}
+      person={gift}
       setContextCurrentPerson={setContextCurrentPerson}
     >
       <Pressable
@@ -58,17 +37,16 @@ const PersonListItem = ({ id }) => {
         onPress={() => {
           // setCurrentPerson(person);
           // resetCurrentPerson(person.id);
-          setCurrentPerson(person);
-          setCurrentPersonId(person.id);
-          navigation.navigate("Ideas", { personId: person.id });
+          //   setCurrentPerson(gift);
+          //   setCurrentPersonId(gift.id);
+          //   navigation.navigate("Ideas", { personId: gift.id });
+          console.log("ress");
+          navigation.navigate("AddIdea", { giftId: gift.id, preview: true });
         }}
       >
-        <Text style={[styles.name]}>{person.name || "Unnamed"}</Text>
-        <View style={[styles.dobContainer]}>
-          <GiftSummary person={person} />
-        </View>
+        <Text style={[styles.name]}>{gift.text || "Unnamed"}</Text>
       </Pressable>
-    </SwipeableRow>
+    </SwipeableGiftRow>
   );
 };
 
@@ -95,4 +73,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PersonListItem;
+export default GiftListItem;

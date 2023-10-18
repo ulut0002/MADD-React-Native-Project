@@ -16,7 +16,7 @@ const GiftSummary = ({ person }) => {
   const [icon, setIcon] = useState("");
 
   useEffect(() => {
-    let giftArr = person.gift || [];
+    let giftArr = person.gifts || [];
     let dob = person.dob;
 
     if (!Array.isArray(giftArr)) {

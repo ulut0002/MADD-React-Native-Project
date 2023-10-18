@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EMPTY_PERSON } from "../util/constants";
 import globalStyles from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
-import { EmptyList, ListSeparatorComponent } from "../components";
+import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
 
 const IdeasScreen = ({ personId }) => {
   const insets = useSafeAreaInsets();
@@ -24,7 +24,8 @@ const IdeasScreen = ({ personId }) => {
   }, [currentPersonId, people]);
 
   const renderItem = (item) => {
-    return <Text>Item</Text>;
+    return <GiftListItem gift={item} />;
+    // return <Text>Item</Text>;
   };
 
   return (

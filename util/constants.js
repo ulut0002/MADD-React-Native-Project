@@ -17,6 +17,11 @@ const GIFT_IDEA_VIEW_MODE = {
   EDIT: "EDIT_MODE",
 };
 
+const GIFT_IDEA_IMAGE_MODE = {
+  PREVIEW: "PREVIEW",
+  LIVE: "LIVE",
+};
+
 const EMPTY_PERSON = {
   id: null,
   name: "",
@@ -32,4 +37,11 @@ const EMPTY_GIFT = {
   height: 0,
 };
 
-export { STORAGE_KEYS, STATIC, EMPTY_PERSON, EMPTY_GIFT, GIFT_IDEA_VIEW_MODE };
+export {
+  STORAGE_KEYS,
+  STATIC,
+  EMPTY_PERSON,
+  EMPTY_GIFT,
+  GIFT_IDEA_VIEW_MODE,
+  GIFT_IDEA_IMAGE_MODE,
+};

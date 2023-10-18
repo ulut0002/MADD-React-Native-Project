@@ -12,7 +12,7 @@ const AppContext = createContext();
 
 function AppProvider({ children }) {
   const [people, setPeople] = useState([]);
-  const [gifts, setGifts] = useState([]);
+  // const [gifts, setGifts] = useState([]);
 
   // When falsy, it means a brand new person entry.
   // when not falsy, it means we are working on an existing person
@@ -84,7 +84,13 @@ function AppProvider({ children }) {
     const person = people.find((person) => person.id === id);
     return person;
   };
-  const findGift = (personId, giftId) => {};
+  const findGift = (personId, giftId) => {
+    const person = findPerson(personId);
+    if (!person) {
+      return;
+    }
+    return person.gifts.find((gift) => gift.id === giftId);
+  };
 
   /**
    *  Add a new person to the people's list with blank gift array.
@@ -252,7 +258,26 @@ function AppProvider({ children }) {
   };
 
   const deleteGift = async (payload) => {
-    console.log("delete a gift");
+    const { personId, giftId } = payload;
+
+    const peopleCopy = people.map((person) => {
+      if (personId === person.id) {
+        const gifts = person.gifts.filter((gift) => gift.id !== giftId);
+
+        return { ...person, gifts };
+      } else {
+        return person;
+      }
+    });
+
+    try {
+      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+      setPeople(peopleCopy);
+      navigation.navigate("Ideas");
+    } catch (error) {
+      // TODO: set error state
+      console.warn(error);
+    }
   };
 
   const clearErrorMessage = () => {
@@ -277,7 +302,7 @@ function AppProvider({ children }) {
         sortPeopleArrayByDate(peopleArr);
       }
       setPeople(peopleArr ? peopleArr : []);
-      setGifts(giftValues ? giftValues : []);
+      // setGifts(giftValues ? giftValues : []);
 
       setDataLoading(false);
     } catch (error) {
@@ -300,7 +325,7 @@ function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
-        gifts,
+        // gifts,
         people,
         addPerson,
         deletePerson,
@@ -319,6 +344,7 @@ function AppProvider({ children }) {
         setPersonToDelete,
         loadFromStorage,
         findPerson,
+        findGift,
         currentPerson,
         setCurrentPerson,
         resetCurrentPerson,
