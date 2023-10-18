@@ -13,17 +13,24 @@ const AppContext = createContext();
 function AppProvider({ children }) {
   const [people, setPeople] = useState([]);
   const [gifts, setGifts] = useState([]);
+
+  // When falsy, it means a brand new person entry.
+  // when not falsy, it means we are working on an existing person
+  const [currentPersonId, setCurrentPersonId] = useState("");
+
+  // currentPerson indicates the currently selected person
+  const [currentPerson, setCurrentPerson] = useState({ ...EMPTY_PERSON });
+
+  // newPerson stores the details of person details on the add person screen
+  const [newPerson, setNewPerson] = useState({ ...EMPTY_PERSON });
+
   const [dataLoading, setDataLoading] = useState(false);
   const [dataError, setDataError] = useState("");
+
   const [modalVisible, setModalVisible] = useState(false);
   const [lastDeletedPerson, setLastDeletedPerson] = useState(null);
   const [lastDeletedGifts, setLastDeletedGifts] = useState(null);
   const [personToDelete, setPersonToDelete] = useState("");
-
-  const [currentPersonId, setCurrentPersonId] = useState("");
-
-  const [currentPerson, setCurrentPerson] = useState(_.cloneDeep(EMPTY_PERSON));
-  const [newPerson, setNewPerson] = useState(_.cloneDeep(EMPTY_PERSON));
 
   const [colorScheme, setColorScheme] = useState("light");
   const colorSchemeObj = useColorScheme();
@@ -58,7 +65,7 @@ function AppProvider({ children }) {
 
     if (!person) {
       setCurrentPersonId(null);
-      setCurrentPerson(null);
+      setCurrentPerson({ ...EMPTY_PERSON });
       return;
     }
     setCurrentPersonId(person.id); //
@@ -89,37 +96,78 @@ function AppProvider({ children }) {
    *  If the process fails, stay on the same screen and display an error message
    */
   const addPerson = async () => {
-    // console.log("new person", newPerson, currentPerson);
+    if (currentPersonId) {
+      saveExistingPerson();
+    } else {
+      createNewPerson();
+    }
+  };
 
-    const personToAdd = {
+  // internal function to create a new person in people's array
+  // - create a new person object
+  // - add it to the copy of people array
+  // - sort people array by date
+  // - push the array to Async Storage
+  // - clear out state variable and navigate to home
+  const createNewPerson = async () => {
+    // create a brand new object
+    let personToAdd = {};
+    personToAdd = {
       id: uuid.v4(),
       name: newPerson.name,
       dob: newPerson.dob,
       gifts: [],
     };
 
-    if (!personToAdd.id) {
-      //TODO: throw an error
-    }
-    if (!personToAdd.name) {
-      //TODO: throw an error
-    }
-    if (!personToAdd.dob) {
-      //TODO: throw an error
-    }
-
+    // add it to people array copy
     let peopleCopy = _.cloneDeep(people);
     peopleCopy.push(personToAdd);
+    peopleCopy = sortPeopleArrayByDate(peopleCopy);
 
+    // update storage and state
     try {
       await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      // setCurrentPerson(null);
-      setNewPerson({});
+      setNewPerson({ ...EMPTY_PERSON });
       setPeople(peopleCopy);
       navigation.navigate("Home");
     } catch (error) {
       // TODO: set error
-      console.log("error", error);
+      console.warn("error", error);
+    }
+  };
+
+  // internal function update name and dob on an existing person
+  // - find the person in the array, and update name and dob from state variable
+  // - sort people array by date
+  // - push the array to Async Storage
+  // - clear out state variable and navigate to Ideas screen
+  const saveExistingPerson = async () => {
+    let personToAdd = {};
+    const person = findPerson(currentPersonId);
+    if (!person)
+      throw new Error(`Person with id ${currentPersonId} is not found`);
+    personToAdd = { ...person };
+
+    let peopleCopy = people.map((person) => {
+      if (person.id === currentPersonId) {
+        return { ...person, name: currentPerson.name, dob: currentPerson.dob };
+      } else {
+        return person;
+      }
+    });
+
+    peopleCopy = sortPeopleArrayByDate(peopleCopy);
+
+    try {
+      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+      // setCurrentPerson(null);
+      setCurrentPersonId(null);
+      setCurrentPerson({ ...EMPTY_PERSON });
+      setPeople(peopleCopy);
+      navigation.navigate("Home");
+    } catch (error) {
+      // TODO: set error
+      console.warn("error", error);
     }
   };
 
@@ -131,7 +179,6 @@ function AppProvider({ children }) {
    */
   const deletePerson = async (payload) => {
     const { id: personId } = payload;
-    console.log("personid", payload);
 
     if (!personId) return;
 
@@ -152,6 +199,15 @@ function AppProvider({ children }) {
       // TODO: set error state
       console.warn(error);
     }
+  };
+
+  const setContextCurrentPerson = (id) => {
+    if (!id) return;
+    const foundPerson = findPerson(id);
+    if (!foundPerson) return;
+    setCurrentPerson({ ...foundPerson });
+    setCurrentPersonId(foundPerson.id);
+    navigation.navigate("AddPeople", {});
   };
 
   /**
@@ -192,7 +248,7 @@ function AppProvider({ children }) {
       ]);
       let peopleArr = peopleValues;
       if (peopleValues && Array.isArray(peopleValues)) {
-        // peopleArr = sortPeopleArrayByDate(peopleValues);
+        peopleArr = sortPeopleArrayByDate(peopleValues);
         sortPeopleArrayByDate(peopleArr);
       }
       setPeople(peopleArr ? peopleArr : []);
@@ -200,7 +256,7 @@ function AppProvider({ children }) {
 
       setDataLoading(false);
     } catch (error) {
-      console.log(error);
+      console.warn(error);
       setDataError(error.message || "Data could not be loaded.");
     }
   };
@@ -245,6 +301,7 @@ function AppProvider({ children }) {
         setNewPerson,
         currentPersonId,
         setCurrentPersonId,
+        setContextCurrentPerson,
       }}
     >
       {children}

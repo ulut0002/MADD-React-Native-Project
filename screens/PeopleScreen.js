@@ -6,7 +6,6 @@ import {
   FlatList,
   Platform,
   RefreshControl,
-  SectionList,
 } from "react-native";
 import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";

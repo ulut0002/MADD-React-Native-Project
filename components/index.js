@@ -1,6 +1,6 @@
 import EmptyList from "./EmptyList";
 import GiftSummary from "./GiftSummary";
-import IOSAddButton from "./IOSAddButton";
+import IOSAddPersonButton from "./IOSAddPersonButton";
 import IOSAddIdeaButton from "./IOSAddIdeaButton";
 import ImagePreview from "./ImagePreview";
 import ListSeparatorComponent from "./ListSeparatorComponent";
@@ -14,7 +14,7 @@ export {
   PersonListItem,
   SwipeableRow,
   ModalAlert,
-  IOSAddButton,
+  IOSAddPersonButton,
   IOSAddIdeaButton,
   GiftSummary,
   ListSeparatorComponent,

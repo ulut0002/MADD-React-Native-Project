@@ -19,6 +19,7 @@ const PersonListItem = ({ id }) => {
     gifts,
     people,
     deletePerson,
+    setContextCurrentPerson,
     setPersonToDelete,
     personToDelete,
     modalVisible,
@@ -39,11 +40,9 @@ const PersonListItem = ({ id }) => {
     const personGifts = gifts.find((gift) => gift.personId === id);
     setPerson(person ? _.cloneDeep(person) : {});
     setPersonGifts(personGifts ? personGifts : []);
-    console.log("{person.gifts.length", person.gifts);
   }, [id]);
 
   const formatDate = (dt) => {
-    // console.log(1"dob", dt);
     try {
       const formattedValue = DateTime.fromISO(dt).toFormat("MMM - dd");
       return formattedValue;
@@ -53,18 +52,16 @@ const PersonListItem = ({ id }) => {
     }
   };
 
-  console.log("person", person);
-
   return (
     <SwipeableRow
       deletePerson={deletePerson}
       personId={person.id}
       person={person}
+      setContextCurrentPerson={setContextCurrentPerson}
     >
       <Pressable
         style={[styles.container]}
         onPress={() => {
-          // console.log("go to details", person.id);
           // setCurrentPerson(person);
           // resetCurrentPerson(person.id);
           setCurrentPerson(person);

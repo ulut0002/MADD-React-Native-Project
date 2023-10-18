@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "reactnative",
-    "slug": "reactnative",
+    "slug": "giftr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,14 +12,17 @@
         {
           "cameraPermission": "Allow Giftr to access your camera."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -27,10 +30,27 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.serdarulutas.giftr"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f1687525-95c6-48f9-bf77-db8a18801169"
+      }
+    },
+    "owner": "serdarulutas",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f1687525-95c6-48f9-bf77-db8a18801169"
     }
   }
 }

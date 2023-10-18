@@ -40,14 +40,12 @@ const GiftSummary = ({ person }) => {
       const diffInDays = -1 * Math.ceil(date1.diff(date2).as("days"));
       setIcon("birthday-cake");
 
-      if (person.name === "Jeff")
-        console.log("diffInDays", diffInDays, person, currentDate);
       if (diffInDays <= -30) {
         setBirthdayText("");
       } else if (diffInDays <= -7) {
-        setBirthdayText("Last month");
+        setBirthdayText("Past month");
       } else if (diffInDays <= -1) {
-        setBirthdayText("Last week");
+        setBirthdayText("Past week");
       } else if (diffInDays === 0) {
         setBirthdayText("Today!");
       } else if (diffInDays === 1) {

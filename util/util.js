@@ -40,7 +40,7 @@ const formatDateForCalendar = (sourceDate) => {
   try {
     timestamp = DateTime.fromISO(sourceDate);
   } catch (error) {
-    console.log("error");
+    console.warn("error");
   }
   const formattedDate = timestamp.toFormat("yyyy/MM/dd");
 

@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { Animated, StyleSheet, Alert } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  Alert,
+  View,
+  I18nManager,
+  Text,
+} from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 
 export default class SwipeableRow extends Component {
@@ -15,6 +22,41 @@ export default class SwipeableRow extends Component {
       </RectButton>
     );
   };
+
+  renderRightAction = (text, color, x, progress) => {
+    const trans = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [x, 0],
+    });
+    const pressHandler = () => {
+      this.close();
+      // alert(text);
+      console.log("id", this.props.person.id);
+      const setContextCurrentPerson = this.props.setContextCurrentPerson;
+      setContextCurrentPerson(this.props.person.id);
+      this.close();
+    };
+    return (
+      <Animated.View style={{ flex: 1, transform: [{ translateX: 0 }] }}>
+        <RectButton
+          style={[styles.rightAction, { backgroundColor: color }]}
+          onPress={pressHandler}
+        >
+          <Text style={styles.actionText}>{text}</Text>
+        </RectButton>
+      </Animated.View>
+    );
+  };
+  renderRightActions = (progress) => (
+    <View
+      style={{
+        width: 80,
+        flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
+      }}
+    >
+      {this.renderRightAction("Edit Person", "#C8C7CD", 192, progress)}
+    </View>
+  );
 
   updateRef = (ref) => {
     this._swipeableRow = ref;
@@ -41,9 +83,7 @@ export default class SwipeableRow extends Component {
       {
         text: "OK",
         onPress: () => {
-          console.log("OK Pressed");
           if (typeof deletePerson === "function") {
-            console.log("hereee");
             deletePerson({ id: person.id });
           }
           this._swipeableRow.close();
@@ -53,12 +93,20 @@ export default class SwipeableRow extends Component {
     ]);
   };
 
+  // closes the swipable
   close = () => {
-    // this.deleteRow();
+    if (this._swipeableRow) {
+      this._swipeableRow.close();
+    }
   };
 
-  onSwipeableOpen = () => {
-    this.deleteRow();
+  onSwipeableOpen = (direction) => {
+    //
+    if (direction === "left") {
+      this.deleteRow();
+    } else {
+      // do nothing
+    }
   };
 
   render() {
@@ -70,7 +118,8 @@ export default class SwipeableRow extends Component {
         leftThreshold={30}
         rightThreshold={40}
         renderLeftActions={this.renderLeftActions}
-        onSwipeableOpen={this.onSwipeableOpen}
+        renderRightActions={this.renderRightActions}
+        // onSwipeableOpen={this.onSwipeableOpen}
       >
         {children}
       </Swipeable>

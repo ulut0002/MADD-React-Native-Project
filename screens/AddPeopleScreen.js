@@ -27,15 +27,13 @@ const AddPeopleScreen = () => {
   } = useApp();
 
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
-  const [DOB, setDOB] = useState();
+  const [DOB, setDOB] = useState(); // default value must remain blank
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (currentPersonId) {
       // use current person
     } else {
-      // use new person
-
       setPerson({ ...newPerson });
       let dt = newPerson.dob ? newPerson.dob : DateTime.now();
       setDOB(formatDateForCalendar(dt));
@@ -45,7 +43,7 @@ const AddPeopleScreen = () => {
   const handleDateChange = (date) => {
     if (currentPersonId) {
     } else {
-      setNewPerson({ ...person, dob: createLuxonDate(date) });
+      // setNewPerson({ ...person, dob: createLuxonDate(date) });
     }
     // setCurrentPerson({ ...person, newDob: createLuxonDate(date) });
   };
@@ -71,8 +69,8 @@ const AddPeopleScreen = () => {
               setCurrentPerson({ ...person, name: value });
             } else {
               const obj = { ...person, name: value };
-              console.log("obj", obj);
-              setNewPerson({ ...obj });
+              setPerson({ ...obj });
+              setNewPerson({ ...obj }); // update context
             }
           }}
           style={[globalStyles.input]}
@@ -89,7 +87,9 @@ const AddPeopleScreen = () => {
             selected={DOB}
             current={DOB}
             onDateChange={(val) => {
-              handleDateChange(val);
+              const obj = { ...person, dob: createLuxonDate(val) };
+              setDOB(val);
+              setNewPerson(obj); // update context
             }}
           ></DatePicker>
         )}
@@ -98,9 +98,8 @@ const AddPeopleScreen = () => {
       <Button
         onPress={() => {
           // navigation.navigate("Home");
-          const obj = { ...person, dob: createLuxonDate(DOB) };
-          console.log("obj", obj);
-          setNewPerson(obj);
+          // const obj = { ...person, dob: createLuxonDate(DOB) };
+          // setNewPerson(obj);
           addPerson();
         }}
         disabled={!person.name || !DOB}
