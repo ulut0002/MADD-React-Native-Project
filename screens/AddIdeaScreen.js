@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, Text } from "react-native";
 import { View, StyleSheet } from "react-native";
 import { useApp } from "../context/appContext";
@@ -10,6 +10,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { DisabledCameraView } from "../components";
 import { EMPTY_GIFT } from "../util/constants";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 /*
 1. Add new gift idea: giftId=falsy, preview=false
@@ -32,10 +33,10 @@ if .image is not there, then it is Live mode by default. Initially the draft is 
  */
 
 const CAMERA_MODE = {
-  LIVE: "LIVE",
-  PREVIEW: "PREVIEW",
-  DRAFT_LIVE: "DRAFT_LIVE",
-  DRAFT_PREVIEW: "DRAFT_PREVIEW",
+  NEW: "NEW", // for ideas without an existing image
+  DRAFT_NEW: "DRAFT_NEW", // when user takes an image for an idea that has no image
+  PREVIEW: "PREVIEW", // for actual image
+  DRAFT_PREVIEW: "DRAFT_PREVIEW", // when user wants to replace the image
 };
 
 const AddIdeaScreen = () => {
@@ -43,9 +44,10 @@ const AddIdeaScreen = () => {
   const insets = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
 
-  const [currentImageMode, setCurrentImageMode] = useState(CAMERA_MODE.LIVE);
+  const [currentImageMode, setCurrentImageMode] = useState(CAMERA_MODE.NEW);
   const [cameraPermission, setCameraPermission] = useState(null);
   const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [camera, setCamera] = useState(null);
 
   const navigation = useNavigation();
   const { giftId, preview = false } = useRoute().params;
@@ -53,13 +55,30 @@ const AddIdeaScreen = () => {
   const { addGift, deleteGift, updateGift, findGift } = useApp();
 
   const [idea, setIdea] = useState({ ...EMPTY_GIFT });
+
   const [image, setImage] = useState("");
   const [draftImage, setDraftImage] = useState("");
-  const cameraRef = useRef(null); // Create a ref for the Camera component
+
+  // Images are stored in a ref variable because:
+  // async takePhoto() used to call setImage or setDraftImage functions
+  // and when the page was re-rendered, image and draftImage variables didn't have the most up to date value
+  const draftImageRef = useRef("");
+  const imageRef = useRef("");
 
   useEffect(() => {
+    const checkCameraPermission = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      console.log("camera status", status);
+
+      if (status === "granted") {
+        setCameraPermission(true);
+      } else if (status === "undetermined") {
+        setCameraPermission(false);
+      } else {
+        setCameraPermission(false);
+      }
+    };
     checkCameraPermission();
-    console.log("permission", permission);
   }, []);
 
   useEffect(() => {
@@ -68,11 +87,11 @@ const AddIdeaScreen = () => {
       if (foundGift) {
         setIdea({ ...foundGift });
         if (foundGift.image) {
-          setImage(foundGift.image);
+          imageRef.current = foundGift.image;
           setCurrentImageMode(CAMERA_MODE.PREVIEW);
         } else {
-          setImage("");
-          setCurrentImageMode(CAMERA_MODE.LIVE);
+          imageRef.current = "";
+          setCurrentImageMode(CAMERA_MODE.NEW);
         }
       } else {
         // this is an error
@@ -82,30 +101,54 @@ const AddIdeaScreen = () => {
     }
   }, []);
 
+  const cameraComponent = useMemo(() => {
+    if (cameraPermission) {
+      return (
+        <Camera
+          style={[styles.imageLiveCameraContainer]}
+          type={type}
+          ref={(ref) => setCamera(ref)}
+        >
+          <View style={styles.cameraButtonContainer}>
+            <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
+              <MaterialIcons
+                name="flip-camera-ios"
+                size={32}
+                color="white"
+                style={styles.flipCameraIcon}
+              />
+            </TouchableOpacity>
+          </View>
+        </Camera>
+      );
+    }
+    return (
+      <View>
+        <Text>Sorry buddy. You don't have access to your camera</Text>
+      </View>
+    );
+  }, [cameraPermission, type, toggleCameraType]);
+
   const takePicture = async () => {
     if (cameraPermission) {
-      if (cameraRef.current) {
-        const data = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          pictureSize: "1200x1800",
-          imageType: "jpg",
-          skipProcessing: false,
-        });
-        setDraftImage(data.uri);
+      let sizes = [];
+      try {
+        sizes = await camera.getAvailablePictureSizesAsync();
+        console.log("sizes: ", sizes);
+      } catch (error) {
+        console.warn(error);
       }
-    }
-  };
 
-  const checkCameraPermission = async () => {
-    const { status } = await Camera.requestCameraPermissionsAsync();
-    console.log("camera status", status);
+      const data = await camera.takePictureAsync({
+        quality: 0.8,
+        pictureSize: sizes ? sizes[0] : "1200x1800",
+        imageType: "jpg",
+        skipProcessing: false,
+      });
 
-    if (status === "granted") {
-      setCameraPermission(true);
-    } else if (status === "undetermined") {
-      setCameraPermission(false);
-    } else {
-      setCameraPermission(false);
+      console.log("draft", data.uri);
+
+      draftImageRef.current = data.uri;
     }
   };
 
@@ -131,6 +174,7 @@ const AddIdeaScreen = () => {
     >
       <View>
         <Text style={[globalStyles.screenTitle]}> New Idea</Text>
+        <Text>{currentImageMode}</Text>
         <TextInput
           placeholder="Idea"
           label={"Gift idea"}
@@ -144,30 +188,18 @@ const AddIdeaScreen = () => {
         ></TextInput>
       </View>
 
-      <View style={styles.cameraContainer}>
-        {currentImageMode === CAMERA_MODE.LIVE && (
-          <React.Fragment>
+      <View style={styles.mediaContainer}>
+        {currentImageMode === CAMERA_MODE.NEW && (
+          <View>
             {cameraPermission && (
-              <View style={{ marginTop: 20 }}>
-                <View style={{ flex: 1 }}>
-                  <Camera style={[styles.camera]} type={type} ref={cameraRef}>
-                    <View style={styles.buttonContainer}>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={toggleCameraType}
-                      >
-                        <Text style={styles.text}>Flip Camera</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Camera>
-                </View>
+              <View>
+                {cameraComponent}
                 <Button
                   onPress={async () => {
-                    //take the shot and go into draft_preview mode
-                    console.log("take a shot and go into draft_preview mode");
                     try {
                       await takePicture();
-                      setCurrentImageMode(CAMERA_MODE.DRAFT_PREVIEW);
+                      // imageRef.current = draftImageRef.current;
+                      setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
                     } catch (error) {
                       console.warn(error);
                     }
@@ -181,26 +213,26 @@ const AddIdeaScreen = () => {
             {!cameraPermission && (
               <Text>Sorry buddy. You don't have access to your camera</Text>
             )}
-          </React.Fragment>
+          </View>
         )}
 
         {currentImageMode === CAMERA_MODE.DRAFT_PREVIEW && (
           <View>
-            {draftImage && (
+            {draftImageRef.current && (
               <View>
-                <Text>Display the Draft image</Text>
                 <Image
-                  source={{ uri: draftImage }}
-                  style={{ width: 100, height: 100 }}
+                  source={{ uri: draftImageRef.current }}
+                  style={styles.imageLiveCameraContainer}
                 ></Image>
+
                 <Button
-                  onPress={() => {
-                    console.log("clean the draft image and change the mode");
-                    setDraftImage("");
-                    if (image) {
-                      setCurrentImageMode(CAMERA_MODE.DRAFT_LIVE);
+                  onPress={async () => {
+                    // console.log("clean the draft image and change the mode");
+                    draftImageRef.current = "";
+                    if (imageRef.current) {
+                      setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
                     } else {
-                      setCurrentImageMode(CAMERA_MODE.LIVE);
+                      setCurrentImageMode(CAMERA_MODE.NEW);
                     }
                   }}
                 >
@@ -208,9 +240,10 @@ const AddIdeaScreen = () => {
                 </Button>
                 <Button
                   onPress={() => {
-                    const savedImg = draftImage;
-                    setDraftImage("");
-                    setImage(savedImg);
+                    const savedImg = draftImageRef.current;
+                    draftImageRef.current = "";
+                    imageRef.current = savedImg;
+
                     setCurrentImageMode(CAMERA_MODE.PREVIEW);
                   }}
                 >
@@ -219,23 +252,52 @@ const AddIdeaScreen = () => {
               </View>
             )}
 
-            {!draftImage && <View>Sorry but there is an error</View>}
+            {!draftImageRef.current && (
+              <View>
+                <Text>Sorry but there is an error</Text>
+              </View>
+            )}
           </View>
         )}
 
-        {currentImageMode === CAMERA_MODE.DRAFT_LIVE && (
+        {currentImageMode === CAMERA_MODE.DRAFT_NEW && (
           <View>
             {cameraPermission && (
               <View>
-                <Text>Display Live image again</Text>
+                <Image
+                  source={{ uri: draftImageRef.current }}
+                  style={styles.imageLiveCameraContainer}
+                ></Image>
                 <Button
                   onPress={() => {
-                    console.log("clean the draft image and change the mode");
+                    imageRef.current = draftImageRef.current;
+                    setCurrentImageMode(CAMERA_MODE.PREVIEW);
                   }}
                 >
-                  Take a shot
+                  Save
                 </Button>
-                <Button>Cancel</Button>
+                <Button
+                  onPress={() => {
+                    if (imageRef.current) {
+                      //something else
+                    } else {
+                      setCurrentImageMode(CAMERA_MODE.NEW);
+                    }
+                  }}
+                >
+                  Take another shot
+                </Button>
+                <Button
+                  onPress={() => {
+                    if (imageRef.current) {
+                      setCurrentImageMode(CAMERA_MODE.PREVIEW);
+                    } else {
+                      setCurrentImageMode(CAMERA_MODE.NEW);
+                    }
+                  }}
+                >
+                  Cancel
+                </Button>
               </View>
             )}
 
@@ -245,12 +307,24 @@ const AddIdeaScreen = () => {
 
         {currentImageMode === CAMERA_MODE.PREVIEW && (
           <View>
-            {image && (
+            {imageRef.current && (
               <View>
                 <Text>Display the image</Text>
+                <Image
+                  source={{ uri: imageRef.current }}
+                  style={styles.imageLiveCameraContainer}
+                ></Image>
+                <Button
+                  onPress={() => {
+                    draftImageRef.current = "";
+                    setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
+                  }}
+                >
+                  Replace Image
+                </Button>
               </View>
             )}
-            {!image && (
+            {!imageRef.current && (
               <View>
                 <Text>Error condition</Text>
               </View>
@@ -268,35 +342,56 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     marginBottom: 40,
   },
+
+  mediaContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    paddingVertical: 20,
+  },
+
+  imageLiveCameraContainer: {
+    width: 300,
+    height: 400,
+  },
+
   cameraContainer: {
     // flex: 1, // This ensures that it takes up the available space
+    // borderWidth: 2,
+  },
+  imageContainer: {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     width: 300,
     height: 400,
     alignSelf: "center",
-    // borderWidth: 2,
   },
   camera: {
     flex: 1,
   },
-  buttonContainer: {
+  cameraButtonContainer: {
     flex: 1,
     flexDirection: "row",
     backgroundColor: "transparent",
-    margin: 64,
+    justifyContent: "flex-end",
   },
   button: {
     flex: 1,
-    alignSelf: "flex-end",
+    alignSelf: "flex-start",
     alignItems: "center",
   },
-  text: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
+  flipCameraIcon: {
+    padding: 10,
   },
 });
 
 export default AddIdeaScreen;
+
+/**
+ *
+ *   View: Centered
+ *      ImageCameraContainer: width: 300 height: 400, flex : 1, centered
+ *
+ */
