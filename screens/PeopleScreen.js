@@ -11,7 +11,12 @@ import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { ActivityIndicator, Button, Modal } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Modal,
+  withTheme,
+} from "react-native-paper";
 import {
   ListSeparatorComponent,
   ModalAlert,
@@ -99,4 +104,4 @@ const PeopleScreen = () => {
 
 const styles = StyleSheet.create({});
 
-export default PeopleScreen;
+export default withTheme(PeopleScreen);

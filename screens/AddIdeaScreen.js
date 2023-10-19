@@ -9,73 +9,28 @@ import { Camera, CameraType } from "expo-camera";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { DisabledCameraView } from "../components";
 import { EMPTY_GIFT } from "../util/constants";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-/*
-1. Add new gift idea: giftId=falsy, preview=false
-2. View existing gift idea: giftId=truthy, preview=true
-3. Update existing gift idea: giftId=truthy, preview=false
-*/
-
-/**
- 
-image
-original image: 
-draftImage : take another picture, cancel : (only draft image changes)
-mode: Live, Preview
-if .image is not there, then it is Live mode by default. Initially the draft is blank. If draft is availanle
-
- User opens the screen: 
-  - If there is an .image, display the image with a button "take new picture"
-  - if there is no image, display the live camera with a button "take picture"
-  - if there is an .image, and user had clicked on the "take image", then show the live window with two buttons. "Take picture" and "cancel": if user takes the picture, then display the newly taken image, and display two buttons "Use this", "Take another one"
- */
-
-const PAGE_MODE = {
-  NEW: "NEW", // for ideas without an existing image
-  DRAFT_NEW: "DRAFT_NEW", // when user takes an image for an idea that has no image
-  PREVIEW: "PREVIEW", // for actual image
-  DRAFT_PREVIEW: "DRAFT_PREVIEW", // when user wants to replace the image
-
-  SHOW_CAMERA: "SHOW_CAMERA",
-  SHOW_IMAGE: "SHOW_IMAGE",
-};
-
-const CAMERA_MODE = {
-  SHOW_CAMERA: "SHOW_CAMERA",
-  SHOW_PREVIEW: "SHOW_PREVIEW",
-};
-
-const IMAGE_PREVIEW_MODE = {
-  ACTUAL_IMAGE: "SHOW_ACTUAL_IMAGE",
-  DRAFT_IMAGE: "DRAFT_IMAGE",
-  NONE: "NONE",
+const MODE = {
+  SHOW_REAL_IMAGE: "SHOW_REAL_IMAGE",
+  SHOW_LIVE_CAMERA: "SHOW_LIVE_CAMERA",
+  SHOW_DRAFT_IMAGE: "SHOW_DRAFT_IMAGE",
 };
 
 const AddIdeaScreen = () => {
   const { currentPersonId } = useApp();
   const insets = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
-
-  const [currentImageMode, setCurrentImageMode] = useState({
-    cameraMode: CAMERA_MODE.SHOW_CAMERA,
-    imageMode: IMAGE_PREVIEW_MODE.NONE,
-  });
-
+  const [mode, setMode] = useState(MODE.SHOW_REAL_IMAGE);
   const [cameraPermission, setCameraPermission] = useState(null);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
   const [camera, setCamera] = useState(null);
 
-  const navigation = useNavigation();
-  const { giftId, preview = false } = useRoute().params;
+  const { giftId } = useRoute().params;
 
-  const { addGift, deleteGift, updateGift, findGift } = useApp();
+  const { addGift, deleteGift, findGift } = useApp();
 
   const [idea, setIdea] = useState({ ...EMPTY_GIFT });
-
-  const [image, setImage] = useState("");
-  const [draftImage, setDraftImage] = useState("");
 
   // Images are stored in a ref variable because:
   // async takePhoto() used to call setImage or setDraftImage functions
@@ -103,28 +58,25 @@ const AddIdeaScreen = () => {
     if (giftId && currentPersonId) {
       const foundGift = findGift(currentPersonId, giftId);
       if (foundGift) {
-        setIdea({ ...foundGift });
+        draftImageRef.current = "";
         if (foundGift.image) {
           imageRef.current = foundGift.image;
-          setCurrentImageMode(createModeObject(CAMERA_MODE.SHOW_IMAGE));
+          setMode(MODE.SHOW_REAL_IMAGE);
         } else {
           imageRef.current = "";
-          setCurrentImageMode(createModeObject(CAMERA_MODE.SHOW_CAMERA));
+          console.log("aaa");
+          setMode(MODE.SHOW_LIVE_CAMERA);
         }
+        setIdea({ ...foundGift });
       } else {
         // this is an error
         console.error("What a mess");
       }
       // get the gift
+    } else {
+      setMode(MODE.SHOW_LIVE_CAMERA);
     }
-  }, []);
-
-  const createModeObject = (cameraMode, imageMode) => {
-    return {
-      cameraMode: cameraMode,
-      imageMode: imageMode || IMAGE_PREVIEW_MODE.NONE,
-    };
-  };
+  }, [giftId, currentPersonId]);
 
   const cameraComponent = useMemo(() => {
     if (cameraPermission) {
@@ -197,7 +149,6 @@ const AddIdeaScreen = () => {
     >
       <View>
         <Text style={[globalStyles.screenTitle]}> New Idea</Text>
-        <Text>{currentImageMode}</Text>
         <TextInput
           placeholder="Idea"
           label={"Gift idea"}
@@ -212,7 +163,12 @@ const AddIdeaScreen = () => {
       </View>
 
       <View style={styles.mediaContainer}>
-        {currentImageMode === PAGE_MODE.NEW && (
+        {/**
+          SHOW_LIVE_CAMERA:
+          1) Taking picture for an item with no existing image (imageRef.current = false)
+          2) Taking a picture as a replacement to an existing image
+    */}
+        {mode === MODE.SHOW_LIVE_CAMERA && (
           <View>
             {cameraPermission && (
               <View>
@@ -221,163 +177,83 @@ const AddIdeaScreen = () => {
                   onPress={async () => {
                     try {
                       await takePicture();
-                      // imageRef.current = draftImageRef.current;
-                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
+                      setMode(MODE.SHOW_DRAFT_IMAGE);
                     } catch (error) {
-                      console.warn(error);
+                      console.error(error);
                     }
                   }}
                 >
-                  Take a shot
+                  Take a Picture
                 </Button>
+                {imageRef.current && (
+                  <Button
+                    onPress={() => {
+                      setMode(MODE.SHOW_REAL_IMAGE);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </View>
             )}
 
-            {!cameraPermission && (
-              <Text>Sorry buddy. You don't have access to your camera</Text>
-            )}
+            {!cameraPermission && <DisabledCameraView />}
           </View>
         )}
 
-        {currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
+        {mode == MODE.SHOW_DRAFT_IMAGE && (
           <View>
-            {draftImageRef.current && (
-              <View>
-                <Image
-                  source={{ uri: draftImageRef.current }}
-                  style={styles.imageLiveCameraContainer}
-                ></Image>
-
-                <Button
-                  onPress={async () => {
-                    // console.log("clean the draft image and change the mode");
-                    draftImageRef.current = "";
-                    if (imageRef.current) {
-                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
-                    } else {
-                      setCurrentImageMode(PAGE_MODE.NEW);
-                    }
-                  }}
-                >
-                  Take a another shot
-                </Button>
-                <Button
-                  onPress={() => {
-                    addGift({
-                      id: giftId,
-                      text: idea.text,
-                      image: draftImageRef.current,
-                    });
-                  }}
-                >
-                  Use the photo
-                </Button>
-                <Button
-                  onPress={() => {
-                    if (imageRef.current) {
-                      setCurrentImageMode(PAGE_MODE.PREVIEW);
-                    } else {
-                      setCurrentImageMode(PAGE_MODE.NEW);
-                    }
-                  }}
-                >
-                  Cancel
-                </Button>
-              </View>
+            {draftImageRef && (
+              <Image
+                source={{ uri: draftImageRef.current }}
+                style={styles.imageLiveCameraContainer}
+              ></Image>
             )}
 
-            {!draftImageRef.current && (
-              <View>
-                <Text>Sorry but there is an error</Text>
-              </View>
+            <Button
+              onPress={async () => {
+                draftImageRef.current = "";
+                setMode(MODE.SHOW_LIVE_CAMERA);
+              }}
+            >
+              Try again!
+            </Button>
+
+            {imageRef.current && (
+              <Button
+                onPress={async () => {
+                  draftImageRef.current = "";
+                  setMode(MODE.SHOW_REAL_IMAGE);
+                }}
+              >
+                Cancel
+              </Button>
             )}
           </View>
         )}
 
-        {currentImageMode === PAGE_MODE.DRAFT_NEW && (
-          <View>
-            {cameraPermission && (
-              <View>
-                {cameraComponent}
-
-                <Button
-                  onPress={async () => {
-                    await takePicture();
-
-                    if (draftImageRef.current) {
-                      //something else
-                      setCurrentImageMode(PAGE_MODE.DRAFT_PREVIEW);
-                    } else {
-                      // an error here
-                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
-                    }
-                  }}
-                >
-                  Take a shot
-                </Button>
-
-                <Button
-                  onPress={() => {
-                    if (imageRef.current) {
-                      setCurrentImageMode(PAGE_MODE.PREVIEW);
-                    } else {
-                      setCurrentImageMode(PAGE_MODE.NEW);
-                    }
-                  }}
-                >
-                  Cancel
-                </Button>
-              </View>
-            )}
-
-            {!cameraPermission && <View>Sorry buddy</View>}
-          </View>
-        )}
-
-        {currentImageMode === PAGE_MODE.PREVIEW && (
+        {mode === MODE.SHOW_REAL_IMAGE && (
           <View>
             {imageRef.current && (
-              <View>
-                <Text>Display the image</Text>
-                <Image
-                  source={{ uri: imageRef.current }}
-                  style={styles.imageLiveCameraContainer}
-                ></Image>
-                <Button
-                  onPress={() => {
-                    draftImageRef.current = "";
-                    setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
-                  }}
-                >
-                  Replace Image
-                </Button>
-              </View>
+              <Image
+                source={{ uri: imageRef.current }}
+                style={styles.imageLiveCameraContainer}
+              ></Image>
             )}
-            {!imageRef.current && (
-              <View>
-                <Text>Error condition</Text>
-              </View>
-            )}
+            <Button
+              onPress={() => {
+                setMode(MODE.SHOW_LIVE_CAMERA);
+              }}
+            >
+              Replace Image
+            </Button>
           </View>
         )}
 
-        {currentImageMode === PAGE_MODE.NEW && (
+        {mode === MODE.SHOW_DRAFT_IMAGE && (
           <Button
             disabled={!idea.text}
             onPress={() => {
-              console.log("save gift with image");
-              addGift({ text: idea.text, image: "", id: giftId });
-            }}
-          >
-            Save Without Image
-          </Button>
-        )}
-
-        {currentImageMode === PAGE_MODE.DRAFT_NEW && (
-          <Button
-            disabled={!idea.text}
-            onPress={() => {
-              console.log("save gift with image");
               addGift({
                 text: idea.text,
                 id: giftId,
@@ -389,28 +265,20 @@ const AddIdeaScreen = () => {
           </Button>
         )}
 
-        {1 == 2 && currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
-          <View>
-            <Button
-              disabled={!idea.text}
-              onPress={() => {
-                addGift({
-                  text: idea.text,
-                  id: giftId,
-                  image: imageRef.current,
-                });
-              }}
-            >
-              Save
-            </Button>
-          </View>
-        )}
-
-        {1 == 2 && currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
-          <View>
-            <Button>Save</Button>
-            <Button>Cancel</Button>
-          </View>
+        {mode === MODE.SHOW_REAL_IMAGE && (
+          <Button
+            disabled={!idea.text}
+            onPress={() => {
+              // return;
+              addGift({
+                text: idea.text,
+                id: giftId,
+                image: imageRef.current,
+              });
+            }}
+          >
+            Save
+          </Button>
         )}
       </View>
     </KeyboardAvoidingView>
@@ -469,10 +337,3 @@ const styles = StyleSheet.create({
 });
 
 export default AddIdeaScreen;
-
-/**
- *
- *   View: Centered
- *      ImageCameraContainer: width: 300 height: 400, flex : 1, centered
- *
- */

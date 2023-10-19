@@ -10,7 +10,7 @@ const IOSAddIdeaButton = () => {
   return (
     <Button
       onPress={() => {
-        navigation.navigate("AddIdea", {});
+        navigation.navigate("AddIdea", { giftId: "" });
       }}
     >
       Add Idea

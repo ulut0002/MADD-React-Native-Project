@@ -10,6 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
 import { EMPTY_PERSON } from "../util/constants";
 import GiftSummary from "./GiftSummary";
+import { List } from "react-native-paper";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 

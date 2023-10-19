@@ -21,7 +21,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -29,7 +31,8 @@
         "NSPhotoLibraryUsageDescription": "Want to access your photo library because...",
         "NSCameraUsageDescription": "Want to use your camera because...",
         "NSLocationAlwaysUsageDescription": "We need to display your location on the home screen."
-      }
+      },
+      "bundleIdentifier": "com.serdarulutas.giftr"
     },
     "android": {
       "adaptiveIcon": {

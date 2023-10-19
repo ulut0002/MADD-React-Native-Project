@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { AppProvider } from "./context/appContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Button, PaperProvider } from "react-native-paper";
+import { Button, PaperProvider, DefaultTheme } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
 
 import {
@@ -16,15 +16,27 @@ import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { IOSAddPersonButton, IOSAddIdeaButton } from "./components";
 
+const theme = {
+  ...DefaultTheme,
+  roundness: 2,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#f2d072",
+    secondary: "#040610",
+    accent: "#bb443e",
+    background: "blue",
+  },
+};
+
 export default function App({ navigation }) {
   const Stack = createNativeStackNavigator();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RootSiblingParent>
-        <NavigationContainer>
-          <AppProvider>
-            <PaperProvider>
+        <PaperProvider theme={theme}>
+          <NavigationContainer>
+            <AppProvider>
               <Stack.Navigator initialRouteName="Home">
                 <Stack.Screen
                   name="Home"
@@ -51,9 +63,9 @@ export default function App({ navigation }) {
                   component={AddIdeaScreen}
                 ></Stack.Screen>
               </Stack.Navigator>
-            </PaperProvider>
-          </AppProvider>
-        </NavigationContainer>
+            </AppProvider>
+          </NavigationContainer>
+        </PaperProvider>
       </RootSiblingParent>
     </GestureHandlerRootView>
   );
