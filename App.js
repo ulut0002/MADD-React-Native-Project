@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Button, PaperProvider, DefaultTheme } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
+import * as SplashScreen from "expo-splash-screen";
 
 import {
   AddIdeaScreen,
@@ -15,6 +16,7 @@ import {
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { IOSAddPersonButton, IOSAddIdeaButton } from "./components";
+import { useState } from "react";
 
 const theme = {
   ...DefaultTheme,
@@ -28,7 +30,30 @@ const theme = {
   },
 };
 
-export default function App({ navigation }) {
+SplashScreen.preventAutoHideAsync();
+
+export default function App() {
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await Font.loadAsync(Entypo.font);
+        // Artificially delay for two seconds to simulate a slow loading
+        // experience. Please remove this if you copy and paste the code!
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
   const Stack = createNativeStackNavigator();
 
   return (
