@@ -32,11 +32,25 @@ if .image is not there, then it is Live mode by default. Initially the draft is 
   - if there is an .image, and user had clicked on the "take image", then show the live window with two buttons. "Take picture" and "cancel": if user takes the picture, then display the newly taken image, and display two buttons "Use this", "Take another one"
  */
 
-const CAMERA_MODE = {
+const PAGE_MODE = {
   NEW: "NEW", // for ideas without an existing image
   DRAFT_NEW: "DRAFT_NEW", // when user takes an image for an idea that has no image
   PREVIEW: "PREVIEW", // for actual image
   DRAFT_PREVIEW: "DRAFT_PREVIEW", // when user wants to replace the image
+
+  SHOW_CAMERA: "SHOW_CAMERA",
+  SHOW_IMAGE: "SHOW_IMAGE",
+};
+
+const CAMERA_MODE = {
+  SHOW_CAMERA: "SHOW_CAMERA",
+  SHOW_PREVIEW: "SHOW_PREVIEW",
+};
+
+const IMAGE_PREVIEW_MODE = {
+  ACTUAL_IMAGE: "SHOW_ACTUAL_IMAGE",
+  DRAFT_IMAGE: "DRAFT_IMAGE",
+  NONE: "NONE",
 };
 
 const AddIdeaScreen = () => {
@@ -44,7 +58,11 @@ const AddIdeaScreen = () => {
   const insets = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
 
-  const [currentImageMode, setCurrentImageMode] = useState(CAMERA_MODE.NEW);
+  const [currentImageMode, setCurrentImageMode] = useState({
+    cameraMode: CAMERA_MODE.SHOW_CAMERA,
+    imageMode: IMAGE_PREVIEW_MODE.NONE,
+  });
+
   const [cameraPermission, setCameraPermission] = useState(null);
   const [permission, requestPermission] = Camera.useCameraPermissions();
   const [camera, setCamera] = useState(null);
@@ -88,10 +106,10 @@ const AddIdeaScreen = () => {
         setIdea({ ...foundGift });
         if (foundGift.image) {
           imageRef.current = foundGift.image;
-          setCurrentImageMode(CAMERA_MODE.PREVIEW);
+          setCurrentImageMode(createModeObject(CAMERA_MODE.SHOW_IMAGE));
         } else {
           imageRef.current = "";
-          setCurrentImageMode(CAMERA_MODE.NEW);
+          setCurrentImageMode(createModeObject(CAMERA_MODE.SHOW_CAMERA));
         }
       } else {
         // this is an error
@@ -100,6 +118,13 @@ const AddIdeaScreen = () => {
       // get the gift
     }
   }, []);
+
+  const createModeObject = (cameraMode, imageMode) => {
+    return {
+      cameraMode: cameraMode,
+      imageMode: imageMode || IMAGE_PREVIEW_MODE.NONE,
+    };
+  };
 
   const cameraComponent = useMemo(() => {
     if (cameraPermission) {
@@ -146,8 +171,6 @@ const AddIdeaScreen = () => {
         skipProcessing: false,
       });
 
-      console.log("draft", data.uri);
-
       draftImageRef.current = data.uri;
     }
   };
@@ -189,7 +212,7 @@ const AddIdeaScreen = () => {
       </View>
 
       <View style={styles.mediaContainer}>
-        {currentImageMode === CAMERA_MODE.NEW && (
+        {currentImageMode === PAGE_MODE.NEW && (
           <View>
             {cameraPermission && (
               <View>
@@ -199,7 +222,7 @@ const AddIdeaScreen = () => {
                     try {
                       await takePicture();
                       // imageRef.current = draftImageRef.current;
-                      setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
+                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
                     } catch (error) {
                       console.warn(error);
                     }
@@ -216,7 +239,7 @@ const AddIdeaScreen = () => {
           </View>
         )}
 
-        {currentImageMode === CAMERA_MODE.DRAFT_PREVIEW && (
+        {currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
           <View>
             {draftImageRef.current && (
               <View>
@@ -230,9 +253,9 @@ const AddIdeaScreen = () => {
                     // console.log("clean the draft image and change the mode");
                     draftImageRef.current = "";
                     if (imageRef.current) {
-                      setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
+                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
                     } else {
-                      setCurrentImageMode(CAMERA_MODE.NEW);
+                      setCurrentImageMode(PAGE_MODE.NEW);
                     }
                   }}
                 >
@@ -240,14 +263,25 @@ const AddIdeaScreen = () => {
                 </Button>
                 <Button
                   onPress={() => {
-                    const savedImg = draftImageRef.current;
-                    draftImageRef.current = "";
-                    imageRef.current = savedImg;
-
-                    setCurrentImageMode(CAMERA_MODE.PREVIEW);
+                    addGift({
+                      id: giftId,
+                      text: idea.text,
+                      image: draftImageRef.current,
+                    });
                   }}
                 >
                   Use the photo
+                </Button>
+                <Button
+                  onPress={() => {
+                    if (imageRef.current) {
+                      setCurrentImageMode(PAGE_MODE.PREVIEW);
+                    } else {
+                      setCurrentImageMode(PAGE_MODE.NEW);
+                    }
+                  }}
+                >
+                  Cancel
                 </Button>
               </View>
             )}
@@ -260,39 +294,34 @@ const AddIdeaScreen = () => {
           </View>
         )}
 
-        {currentImageMode === CAMERA_MODE.DRAFT_NEW && (
+        {currentImageMode === PAGE_MODE.DRAFT_NEW && (
           <View>
             {cameraPermission && (
               <View>
-                <Image
-                  source={{ uri: draftImageRef.current }}
-                  style={styles.imageLiveCameraContainer}
-                ></Image>
+                {cameraComponent}
+
                 <Button
-                  onPress={() => {
-                    imageRef.current = draftImageRef.current;
-                    setCurrentImageMode(CAMERA_MODE.PREVIEW);
-                  }}
-                >
-                  Save
-                </Button>
-                <Button
-                  onPress={() => {
-                    if (imageRef.current) {
+                  onPress={async () => {
+                    await takePicture();
+
+                    if (draftImageRef.current) {
                       //something else
+                      setCurrentImageMode(PAGE_MODE.DRAFT_PREVIEW);
                     } else {
-                      setCurrentImageMode(CAMERA_MODE.NEW);
+                      // an error here
+                      setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
                     }
                   }}
                 >
-                  Take another shot
+                  Take a shot
                 </Button>
+
                 <Button
                   onPress={() => {
                     if (imageRef.current) {
-                      setCurrentImageMode(CAMERA_MODE.PREVIEW);
+                      setCurrentImageMode(PAGE_MODE.PREVIEW);
                     } else {
-                      setCurrentImageMode(CAMERA_MODE.NEW);
+                      setCurrentImageMode(PAGE_MODE.NEW);
                     }
                   }}
                 >
@@ -305,7 +334,7 @@ const AddIdeaScreen = () => {
           </View>
         )}
 
-        {currentImageMode === CAMERA_MODE.PREVIEW && (
+        {currentImageMode === PAGE_MODE.PREVIEW && (
           <View>
             {imageRef.current && (
               <View>
@@ -317,7 +346,7 @@ const AddIdeaScreen = () => {
                 <Button
                   onPress={() => {
                     draftImageRef.current = "";
-                    setCurrentImageMode(CAMERA_MODE.DRAFT_NEW);
+                    setCurrentImageMode(PAGE_MODE.DRAFT_NEW);
                   }}
                 >
                   Replace Image
@@ -329,6 +358,58 @@ const AddIdeaScreen = () => {
                 <Text>Error condition</Text>
               </View>
             )}
+          </View>
+        )}
+
+        {currentImageMode === PAGE_MODE.NEW && (
+          <Button
+            disabled={!idea.text}
+            onPress={() => {
+              console.log("save gift with image");
+              addGift({ text: idea.text, image: "", id: giftId });
+            }}
+          >
+            Save Without Image
+          </Button>
+        )}
+
+        {currentImageMode === PAGE_MODE.DRAFT_NEW && (
+          <Button
+            disabled={!idea.text}
+            onPress={() => {
+              console.log("save gift with image");
+              addGift({
+                text: idea.text,
+                id: giftId,
+                image: draftImageRef.current,
+              });
+            }}
+          >
+            Save
+          </Button>
+        )}
+
+        {1 == 2 && currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
+          <View>
+            <Button
+              disabled={!idea.text}
+              onPress={() => {
+                addGift({
+                  text: idea.text,
+                  id: giftId,
+                  image: imageRef.current,
+                });
+              }}
+            >
+              Save
+            </Button>
+          </View>
+        )}
+
+        {1 == 2 && currentImageMode === PAGE_MODE.DRAFT_PREVIEW && (
+          <View>
+            <Button>Save</Button>
+            <Button>Cancel</Button>
           </View>
         )}
       </View>

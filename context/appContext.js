@@ -220,7 +220,7 @@ function AppProvider({ children }) {
   };
 
   const addGift = async (payload) => {
-    const { text, image } = payload;
+    const { id, text, image } = payload;
 
     if (!currentPersonId) {
       throw new Error(`Unexpected error during adding a gift`);
@@ -229,12 +229,25 @@ function AppProvider({ children }) {
     const newPeople = people.map((person) => {
       if (person.id === currentPersonId) {
         const newPerson = _.cloneDeep(person);
-        const newGift = {
-          id: uuid.v4(),
-          text: text,
-          image: image,
-        };
-        newPerson.gifts.push(newGift);
+        if (!id) {
+          const newGift = {
+            id: id || uuid.v4(),
+            text: text,
+            image: image,
+          };
+          newPerson.gifts.push(newGift);
+        } else {
+          let giftList = newPerson.gifts;
+          giftList = giftList.map((gift) => {
+            if (gift.id === id) {
+              return { ...gift, text, image };
+            } else {
+              return gift;
+            }
+          });
+          newPerson.gifts = giftList;
+        }
+
         return newPerson;
       } else {
         return person;
@@ -249,8 +262,6 @@ function AppProvider({ children }) {
       // TODO: set error state
       console.warn(error);
     }
-
-    console.log("add a new gift", text);
   };
 
   const updateGift = async (payload) => {
