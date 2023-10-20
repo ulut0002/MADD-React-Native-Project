@@ -57,7 +57,11 @@ const PeopleScreen = () => {
         globalStyles.screen,
       ]}
     >
-      <Text style={[globalStyles.screenTitle]}>Lucky People</Text>
+      <Text
+        style={[globalStyles.screenTitle, globalStyles.screenTitleStickNoBills]}
+      >
+        Lucky People
+      </Text>
       <View style={[globalStyles.line]}></View>
       <View style={[globalStyles.screenContent]}>
         <FlatList

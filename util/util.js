@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DateTime } from "luxon";
 import _ from "lodash";
 import * as FileSystem from "expo-file-system";
+import { SETTINGS } from "../config/config";
 
 // Stores given key/value pair in Async Storage
 const storeData = (key, value) => {

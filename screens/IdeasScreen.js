@@ -69,7 +69,7 @@ const IdeasScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <EmptyList text={[`You have no gift ideas for ${person.name}`]} />
+          <EmptyList text={[`No gift ideas for yet ${person.name} yet?`]} />
         }
       ></FlatList>
     </View>

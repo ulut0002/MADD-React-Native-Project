@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Button, PaperProvider, DefaultTheme } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
 // import * as SplashScreen from "expo-splash-screen";
+import { useFonts } from "expo-font";
 
 import {
   AddIdeaScreen,
@@ -34,6 +35,9 @@ const theme = {
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [fontsLoaded] = useFonts({
+    "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
+  });
 
   useEffect(() => {
     async function prepare() {
@@ -55,6 +59,10 @@ export default function App() {
   }, []);
 
   const Stack = createNativeStackNavigator();
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

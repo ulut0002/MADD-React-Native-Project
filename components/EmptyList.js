@@ -12,6 +12,7 @@ const EmptyList = ({ text }) => {
     arr = text;
   }
 
+  //TODO: Change this to "children"
   return (
     <View style={[styles.container]}>
       <FontAwesome5
@@ -31,12 +32,6 @@ const EmptyList = ({ text }) => {
           </Text>
         );
       })}
-      {1 == 2 && (
-        <Image
-          source={require("../assets/no-task.png")}
-          style={[styles.image]}
-        ></Image>
-      )}
     </View>
   );
 };

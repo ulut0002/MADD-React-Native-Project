@@ -40,6 +40,11 @@ const styles = StyleSheet.create({
     paddingStart: 16,
   },
 
+  screenTitleStickNoBills: {
+    fontFamily: "StickNoBills-Bold",
+    fontSize: 44,
+  },
+
   line: {
     borderBottomColor: colors.secondary,
     borderBottomWidth: 1,
