@@ -30,11 +30,9 @@ export default class SwipeableRow extends Component {
     });
     const pressHandler = () => {
       this.close();
-      // alert(text);
-      console.log("id", this.props.person.id);
-      const setContextCurrentPerson = this.props.setContextCurrentPerson;
-      setContextCurrentPerson(this.props.person.id);
-      this.close();
+      const navigation = this.props.navigation;
+
+      navigation.navigate("AddPeople", { personId: this.props.person.id });
     };
     return (
       <Animated.View style={{ flex: 1, transform: [{ translateX: 0 }] }}>
@@ -84,7 +82,7 @@ export default class SwipeableRow extends Component {
         text: "OK",
         onPress: () => {
           if (typeof deletePerson === "function") {
-            deletePerson({ id: person.id });
+            deletePerson(person.id);
           }
           this._swipeableRow.close();
         },
@@ -119,7 +117,7 @@ export default class SwipeableRow extends Component {
         rightThreshold={40}
         renderLeftActions={this.renderLeftActions}
         renderRightActions={this.renderRightActions}
-        // onSwipeableOpen={this.onSwipeableOpen}
+        onSwipeableOpen={this.onSwipeableOpen}
       >
         {children}
       </Swipeable>

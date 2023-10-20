@@ -11,12 +11,7 @@ import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import {
-  ActivityIndicator,
-  Button,
-  Modal,
-  withTheme,
-} from "react-native-paper";
+import { Button, withTheme } from "react-native-paper";
 import {
   ListSeparatorComponent,
   ModalAlert,
@@ -25,7 +20,7 @@ import {
 import globalStyles from "../styles/globalStyles";
 
 const PeopleScreen = () => {
-  const { people, dataLoading, loadFromStorage } = useApp();
+  const { people, loadFromStorage } = useApp();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
@@ -35,22 +30,18 @@ const PeopleScreen = () => {
     setLocalPeople(people);
   }, [people]);
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    loadFromStorage();
+    await loadFromStorage();
     setRefreshing(false);
-  }, []);
+  }, [people]);
 
   useEffect(() => {
     loadFromStorage();
   }, []);
 
-  // const onRefresh = () => {
-  //   loadFromStorage();
-  // };
-
   const renderItem = (item) => {
-    return <PersonListItem id={item.id} />;
+    return <PersonListItem person={item} />;
   };
 
   return (
@@ -65,25 +56,19 @@ const PeopleScreen = () => {
     >
       <Text style={[globalStyles.screenTitle]}>Your List</Text>
 
-      {dataLoading && !refreshing && <ActivityIndicator />}
-
-      {!dataLoading && (
-        <FlatList
-          data={localPeople}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item, index }) => renderItem(item)}
-          style={[globalStyles.peopleList]}
-          ItemSeparatorComponent={<ListSeparatorComponent />}
-          ListEmptyComponent={
-            <EmptyList
-              text={["Your list is empty.", "Press + to add people"]}
-            />
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        ></FlatList>
-      )}
+      <FlatList
+        data={localPeople}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item, index }) => renderItem(item)}
+        style={[globalStyles.peopleList]}
+        ItemSeparatorComponent={<ListSeparatorComponent />}
+        ListEmptyComponent={
+          <EmptyList text={["Your list is empty.", "Press + to add people"]} />
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      ></FlatList>
 
       <ModalAlert />
 

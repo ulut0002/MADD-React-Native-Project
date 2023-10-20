@@ -31,9 +31,7 @@ export default class SwipeableGiftRow extends Component {
     const pressHandler = () => {
       this.close();
       // alert(text);
-      console.log("id", this.props.person.id);
-      const setContextCurrentPerson = this.props.setContextCurrentPerson;
-      setContextCurrentPerson(this.props.person.id);
+
       this.close();
     };
     return (
@@ -63,16 +61,9 @@ export default class SwipeableGiftRow extends Component {
   };
 
   deleteRow = () => {
-    const { deletePerson, person } = this.props;
-    const name = person.name || "this user";
-    const giftCount = Array.isArray(person.gifts) ? person.gifts.length : 0;
+    const { deleteGift, gift, personId } = this.props;
 
-    const giftCountText =
-      giftCount === 0
-        ? `${name} has no gifts in its list. `
-        : `You have entered ${giftCount} gift ideas for ${name}`;
-
-    Alert.alert(`Deleting ${name}?`, `${giftCountText}`, [
+    Alert.alert(`Delete gift?`, `Are you sure? `, [
       {
         text: "Cancel",
         onPress: () => {
@@ -83,8 +74,8 @@ export default class SwipeableGiftRow extends Component {
       {
         text: "OK",
         onPress: () => {
-          if (typeof deletePerson === "function") {
-            deletePerson({ id: person.id });
+          if (typeof deleteGift === "function") {
+            deleteGift({ personId: personId, giftId: gift.id });
           }
           this._swipeableRow.close();
         },
@@ -118,8 +109,8 @@ export default class SwipeableGiftRow extends Component {
         leftThreshold={30}
         rightThreshold={40}
         renderLeftActions={this.renderLeftActions}
-        renderRightActions={this.renderRightActions}
-        // onSwipeableOpen={this.onSwipeableOpen}
+        // renderRightActions={this.renderRightActions}
+        onSwipeableOpen={this.onSwipeableOpen}
       >
         {children}
       </Swipeable>

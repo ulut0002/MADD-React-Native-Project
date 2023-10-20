@@ -14,44 +14,31 @@ import { useApp } from "../context/appContext";
 import { Button } from "react-native-paper";
 import { DateTime } from "luxon";
 import { EMPTY_PERSON } from "../util/constants";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useRoute } from "@react-navigation/native";
+import _ from "lodash";
 
 const AddPeopleScreen = () => {
   const {
     addPerson,
     deletePerson,
     findPerson,
-    currentPerson,
     setCurrentPerson,
-    newPerson,
     setNewPerson,
-    currentPersonId,
   } = useApp();
+
+  const { personId } = useRoute().params;
 
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [DOB, setDOB] = useState(); // default value must remain blank
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    if (currentPersonId && currentPerson) {
-      // use current person
-      setPerson({ ...currentPerson });
-      let dt = newPerson.dob ? currentPerson.dob : DateTime.now();
-      setDOB(formatDateForCalendar(dt));
-    } else {
-      setPerson({ ...newPerson });
-      let dt = newPerson.dob ? newPerson.dob : DateTime.now();
-      setDOB(formatDateForCalendar(dt));
-    }
-  }, [currentPerson, newPerson, currentPersonId]);
-
-  const handleDateChange = (date) => {
-    if (currentPersonId) {
-    } else {
-      // setNewPerson({ ...person, dob: createLuxonDate(date) });
-    }
-    // setCurrentPerson({ ...person, newDob: createLuxonDate(date) });
-  };
+    let foundPerson = findPerson(personId);
+    if (!foundPerson) foundPerson = _.cloneDeep(EMPTY_PERSON);
+    setPerson(_.cloneDeep(foundPerson));
+    let dt = foundPerson.dob ? foundPerson.dob : DateTime.now();
+    setDOB(formatDateForCalendar(dt));
+  }, [personId]);
 
   return (
     <KeyboardAvoidingView
@@ -68,8 +55,7 @@ const AddPeopleScreen = () => {
         <TextInput
           value={person.name}
           onChangeText={(value) => {
-            // setPerson({ ...person, newName: value });
-            if (currentPersonId) {
+            if (personId) {
               const obj = { ...person, name: value };
               setCurrentPerson({ ...obj });
               setPerson({ ...obj });
@@ -94,7 +80,7 @@ const AddPeopleScreen = () => {
             selected={DOB}
             current={DOB}
             onDateChange={(val) => {
-              if (currentPersonId) {
+              if (personId) {
                 const obj = { ...person, dob: createLuxonDate(val) };
                 setDOB(val);
                 setCurrentPerson({ ...obj }); // update context
@@ -110,17 +96,23 @@ const AddPeopleScreen = () => {
 
       <Button
         onPress={() => {
-          addPerson();
+          const personPayload = {
+            ...EMPTY_PERSON,
+            id: personId,
+            name: person.name,
+            dob: createLuxonDate(DOB),
+          };
+          addPerson(personPayload);
         }}
         disabled={!person.name || !DOB}
       >
-        {person.id ? `Update Person` : `Add Person`}
+        {personId ? `Update Person` : `Add Person`}
       </Button>
 
-      {currentPersonId && (
+      {personId && (
         <Button
           onPress={() => {
-            deletePerson();
+            deletePerson(personId);
           }}
         >{`Delete`}</Button>
       )}

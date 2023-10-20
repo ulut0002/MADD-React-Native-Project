@@ -26,11 +26,10 @@ const AddIdeaScreen = () => {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [camera, setCamera] = useState(null);
 
-  const { giftId } = useRoute().params;
-
   const { addGift, deleteGift, findGift } = useApp();
 
   const [idea, setIdea] = useState({ ...EMPTY_GIFT });
+  const { giftId } = useRoute().params;
 
   // Images are stored in a ref variable because:
   // async takePhoto() used to call setImage or setDraftImage functions
@@ -41,7 +40,6 @@ const AddIdeaScreen = () => {
   useEffect(() => {
     const checkCameraPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
-      console.log("camera status", status);
 
       if (status === "granted") {
         setCameraPermission(true);
@@ -64,7 +62,6 @@ const AddIdeaScreen = () => {
           setMode(MODE.SHOW_REAL_IMAGE);
         } else {
           imageRef.current = "";
-          console.log("aaa");
           setMode(MODE.SHOW_LIVE_CAMERA);
         }
         setIdea({ ...foundGift });
@@ -101,7 +98,7 @@ const AddIdeaScreen = () => {
     }
     return (
       <View>
-        <Text>Sorry buddy. You don't have access to your camera</Text>
+        <DisabledCameraView />
       </View>
     );
   }, [cameraPermission, type, toggleCameraType]);
@@ -111,7 +108,6 @@ const AddIdeaScreen = () => {
       let sizes = [];
       try {
         sizes = await camera.getAvailablePictureSizesAsync();
-        console.log("sizes: ", sizes);
       } catch (error) {
         console.warn(error);
       }
@@ -148,7 +144,7 @@ const AddIdeaScreen = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View>
-        <Text style={[globalStyles.screenTitle]}> New Idea</Text>
+        <Text style={[globalStyles.screenTitle]}>New Idea</Text>
         <TextInput
           placeholder="Idea"
           label={"Gift idea"}
@@ -170,34 +166,41 @@ const AddIdeaScreen = () => {
     */}
         {mode === MODE.SHOW_LIVE_CAMERA && (
           <View>
-            {cameraPermission && (
-              <View>
-                {cameraComponent}
-                <Button
-                  onPress={async () => {
-                    try {
-                      await takePicture();
-                      setMode(MODE.SHOW_DRAFT_IMAGE);
-                    } catch (error) {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  Take a Picture
-                </Button>
-                {imageRef.current && (
-                  <Button
-                    onPress={() => {
-                      setMode(MODE.SHOW_REAL_IMAGE);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </View>
+            {cameraComponent}
+            <Button
+              onPress={async () => {
+                try {
+                  await takePicture();
+                  setMode(MODE.SHOW_DRAFT_IMAGE);
+                } catch (error) {
+                  console.error(error);
+                }
+              }}
+            >
+              Take a Picture
+            </Button>
+            {imageRef.current && (
+              <Button
+                onPress={() => {
+                  setMode(MODE.SHOW_REAL_IMAGE);
+                }}
+              >
+                Cancel
+              </Button>
             )}
+            <Button
+              onPress={() => {
+                addGift({
+                  text: idea.text,
+                  id: giftId,
+                  image: draftImageRef.current,
+                });
 
-            {!cameraPermission && <DisabledCameraView />}
+                setMode(MODE.SHOW_REAL_IMAGE);
+              }}
+            >
+              Save
+            </Button>
           </View>
         )}
 
@@ -216,7 +219,7 @@ const AddIdeaScreen = () => {
                 setMode(MODE.SHOW_LIVE_CAMERA);
               }}
             >
-              Try again!
+              Take Another Picture
             </Button>
 
             {imageRef.current && (
@@ -253,8 +256,8 @@ const AddIdeaScreen = () => {
         {mode === MODE.SHOW_DRAFT_IMAGE && (
           <Button
             disabled={!idea.text}
-            onPress={() => {
-              addGift({
+            onPress={async () => {
+              await addGift({
                 text: idea.text,
                 id: giftId,
                 image: draftImageRef.current,

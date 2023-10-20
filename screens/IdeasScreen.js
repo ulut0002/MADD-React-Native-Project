@@ -6,26 +6,39 @@ import { EMPTY_PERSON } from "../util/constants";
 import globalStyles from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
+import { useRoute } from "@react-navigation/native";
+import _ from "lodash";
 
-const IdeasScreen = ({ personId }) => {
+const IdeasScreen = () => {
   const insets = useSafeAreaInsets();
 
-  const { currentPersonId, findPerson, people } = useApp();
+  const { findPerson, setCurrentPersonId, people } = useApp();
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [refreshing, setRefreshing] = useState(false);
+  const { personId } = useRoute().params;
 
-  const onRefresh = () => {};
+  const reloadGiftList = () => {
+    const foundPerson = findPerson(personId);
+
+    setCurrentPersonId(foundPerson ? foundPerson.id : ""); //needed for add-gift page
+
+    if (foundPerson) {
+      setPerson(_.cloneDeep(foundPerson));
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    reloadGiftList();
+    setRefreshing(false);
+  }, [people]);
 
   useEffect(() => {
-    const foundPerson = findPerson(currentPersonId);
-    if (foundPerson) {
-      setPerson({ ...foundPerson });
-    }
-  }, [currentPersonId, people]);
+    reloadGiftList();
+  }, [people]);
 
   const renderItem = (item) => {
-    return <GiftListItem gift={item} />;
-    // return <Text>Item</Text>;
+    return <GiftListItem gift={item} personId={personId} />;
   };
 
   return (
@@ -45,7 +58,7 @@ const IdeasScreen = ({ personId }) => {
       <FlatList
         data={person.gifts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => renderItem(item)}
+        renderItem={({ item }) => renderItem(item)}
         ItemSeparatorComponent={<ListSeparatorComponent />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

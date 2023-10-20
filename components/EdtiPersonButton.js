@@ -6,11 +6,7 @@ const EdtiPersonButton = () => {
   const { currentPersonId } = useApp();
   return (
     <View>
-      <Pressable
-        onPress={() => {
-          console.log("currentpersonId");
-        }}
-      ></Pressable>
+      <Pressable onPress={() => {}}></Pressable>
     </View>
   );
 };

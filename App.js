@@ -16,7 +16,7 @@ import {
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { IOSAddPersonButton, IOSAddIdeaButton } from "./components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const theme = {
   ...DefaultTheme,
@@ -30,7 +30,7 @@ const theme = {
   },
 };
 
-SplashScreen.preventAutoHideAsync();
+// SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -51,7 +51,7 @@ export default function App() {
       }
     }
 
-    prepare();
+    // prepare();
   }, []);
 
   const Stack = createNativeStackNavigator();

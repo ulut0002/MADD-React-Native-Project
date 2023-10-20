@@ -5,43 +5,29 @@ import { View, StyleSheet, Text, Pressable } from "react-native";
 import { useApp } from "../context/appContext";
 import { DateTime } from "luxon";
 
-import SwipeableRow from "./SwipeableRow";
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
-import { EMPTY_GIFT, EMPTY_PERSON } from "../util/constants";
-import GiftSummary from "./GiftSummary";
+import { EMPTY_GIFT } from "../util/constants";
+
 import SwipeableGiftRow from "./SwipeableGiftRow";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
-const GiftListItem = ({ gift = { ...EMPTY_GIFT } }) => {
+const GiftListItem = ({ gift, personId }) => {
   const navigation = useNavigation();
-  const {
-    gifts,
-    people,
-    deletePerson,
-    setContextCurrentPerson,
-    setCurrentPerson,
-    setCurrentPersonId,
-  } = useApp();
+  const { deleteGift } = useApp();
 
   return (
     <SwipeableGiftRow
-      deletePerson={deletePerson}
-      personId={gift.id}
-      person={gift}
-      setContextCurrentPerson={setContextCurrentPerson}
+      deleteGift={deleteGift}
+      gift={gift}
+      personId={personId}
+      navigation={navigation}
     >
       <Pressable
         style={[styles.container]}
         onPress={() => {
-          // setCurrentPerson(person);
-          // resetCurrentPerson(person.id);
-          //   setCurrentPerson(gift);
-          //   setCurrentPersonId(gift.id);
-          //   navigation.navigate("Ideas", { personId: gift.id });
-          console.log("ress");
-          navigation.navigate("AddIdea", { giftId: gift.id, preview: true });
+          navigation.navigate("AddIdea", { giftId: gift.id });
         }}
       >
         <Text style={[styles.name]}>{gift.text || "Unnamed"}</Text>

@@ -37,6 +37,8 @@ const EMPTY_GIFT = {
   height: 0,
 };
 
+const SCREEN_NAMES = {};
+
 export {
   STORAGE_KEYS,
   STATIC,
@@ -44,4 +46,5 @@ export {
   EMPTY_GIFT,
   GIFT_IDEA_VIEW_MODE,
   GIFT_IDEA_IMAGE_MODE,
+  SCREEN_NAMES,
 };

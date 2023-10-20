@@ -12,7 +12,7 @@ const IOSAddPersonButton = () => {
     <Button
       onPress={() => {
         setCurrentPersonId(null);
-        navigation.navigate("AddPeople", {});
+        navigation.navigate("AddPeople", { personId: null });
       }}
     >
       Add Person

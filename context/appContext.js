@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { retrieveData, sortPeopleArrayByDate, storeData } from "../util/util";
 import { STORAGE_KEYS, EMPTY_PERSON } from "../util/constants";
 import { DateTime } from "luxon";
-import { useColorScheme } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
 
@@ -12,7 +11,6 @@ const AppContext = createContext();
 
 function AppProvider({ children }) {
   const [people, setPeople] = useState([]);
-  // const [gifts, setGifts] = useState([]);
 
   // When falsy, it means a brand new person entry.
   // when not falsy, it means we are working on an existing person
@@ -28,20 +26,8 @@ function AppProvider({ children }) {
   const [dataError, setDataError] = useState("");
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [lastDeletedPerson, setLastDeletedPerson] = useState(null);
-  const [lastDeletedGifts, setLastDeletedGifts] = useState(null);
-  const [personToDelete, setPersonToDelete] = useState("");
 
-  const [colorScheme, setColorScheme] = useState("light");
-  const colorSchemeObj = useColorScheme();
   const navigation = useNavigation();
-
-  // set color scheme. Default scheme = light
-  useEffect(() => {
-    setColorScheme(
-      colorScheme === "dark" ? setColorScheme("dark") : setColorScheme("light")
-    );
-  }, [colorSchemeObj]);
 
   // When people array changes, sort it by birthday
   useEffect(() => {
@@ -54,24 +40,6 @@ function AppProvider({ children }) {
     cleanData();
   }, []);
 
-  const undoLastDelete = () => {};
-
-  const resetCurrentPerson = (id) => {
-    let person = null;
-
-    if (id) {
-      person = findPerson(id);
-    }
-
-    if (!person) {
-      setCurrentPersonId(null);
-      setCurrentPerson({ ...EMPTY_PERSON });
-      return;
-    }
-    setCurrentPersonId(person.id); //
-    setCurrentPerson({ ...person });
-  };
-
   /**
    *
    *
@@ -80,215 +48,151 @@ function AppProvider({ children }) {
     setModalVisible(!modalVisible);
   };
 
-  const findPerson = (id) => {
-    const person = people.find((person) => person.id === id);
-    return person;
-  };
-  const findGift = (personId, giftId) => {
-    const person = findPerson(personId);
-    if (!person) {
-      return;
-    }
-    return person.gifts.find((gift) => gift.id === giftId);
-  };
-
-  /**
-   *  Add a new person to the people's list with blank gift array.
-   *  - Add new object to array-copy
-   *  - store the array data in Async storage
-   *  - clear out form values
-   *  - update people state object
-   *  - navigate to home screen. (the list will be updated)
-   *
-   *  If the process fails, stay on the same screen and display an error message
-   */
-  const addPerson = async () => {
-    if (currentPersonId) {
-      saveExistingPerson();
+  const addPerson = async (payload) => {
+    const { id } = payload;
+    if (id) {
+      saveExistingPersonPromise(payload)
+        .then(() => {
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.warn("Error at saveExistingPerson: ", error);
+        });
     } else {
-      createNewPerson();
+      createNewPersonPromise(payload)
+        .then(() => {
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.warn("Error at createNewPerson: ", error);
+        });
     }
   };
 
-  // internal function to create a new person in people's array
-  // - create a new person object
-  // - add it to the copy of people array
-  // - sort people array by date
-  // - push the array to Async Storage
-  // - clear out state variable and navigate to home
-  const createNewPerson = async () => {
-    // create a brand new object
-    let personToAdd = {};
-    personToAdd = {
-      id: uuid.v4(),
-      name: newPerson.name,
-      dob: newPerson.dob,
-      gifts: [],
-    };
-
-    // add it to people array copy
-    let peopleCopy = _.cloneDeep(people);
-    peopleCopy.push(personToAdd);
-    peopleCopy = sortPeopleArrayByDate(peopleCopy);
-
-    // update storage and state
-    try {
-      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setNewPerson({ ...EMPTY_PERSON });
-      setPeople(peopleCopy);
-      navigation.navigate("Home");
-    } catch (error) {
-      // TODO: set error
-      console.warn("error", error);
-    }
+  const deletePerson = async (personId) => {
+    deletePersonPromise(personId)
+      .then(() => {
+        navigation.navigate("Home");
+      })
+      .catch((error) => {
+        console.warn("deletePerson error: ", error);
+      });
   };
 
-  // internal function update name and dob on an existing person
-  // - find the person in the array, and update name and dob from state variable
-  // - sort people array by date
-  // - push the array to Async Storage
-  // - clear out state variable and navigate to Ideas screen
-  const saveExistingPerson = async () => {
-    const person = findPerson(currentPersonId);
-    if (!person)
-      throw new Error(`Person with id ${currentPersonId} is not found`);
-
-    let peopleCopy = _.cloneDeep(people);
-
-    peopleCopy = peopleCopy.map((person) => {
-      if (person.id === currentPersonId) {
-        return { ...person, name: currentPerson.name, dob: currentPerson.dob };
-      } else {
-        return person;
+  const addGiftPromise = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { text, image, personId } = payload;
+        console.log("addGiftPromise", payload);
+        const newPeople = people.map((person) => {
+          if (person.id === personId) {
+            const newGift = { id: uuid.v4(), text: text, image: image };
+            console.log("new gift", newGift);
+            const giftsCopy = person.gifts.map((gift) => {
+              return gift;
+            });
+            giftsCopy.push(newGift);
+            const newPerson = { ...person, gifts: giftsCopy };
+            return newPerson;
+          } else {
+            return person;
+          }
+        });
+        await storeData(STORAGE_KEYS.PEOPLE, newPeople);
+        setPeople(newPeople);
+        resolve(true);
+      } catch (error) {
+        reject(error);
       }
     });
-
-    // console.log("updated", peopleCopy[0]);
-
-    peopleCopy = sortPeopleArrayByDate(peopleCopy);
-
-    try {
-      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setPeople(_.cloneDeep(peopleCopy));
-      setCurrentPersonId(null);
-      setCurrentPerson({ ...EMPTY_PERSON });
-      navigation.navigate("Home");
-    } catch (error) {
-      // TODO: set error
-      console.warn("error", error);
-    }
   };
 
-  /**
-   * @parameter personId
-   *
-   * 1. Find the person in the array list, delete, update state and async storage
-   * 2. Do the same thing for the gift items whose personId = parameter
-   */
-  const deletePerson = async () => {
-    if (!currentPersonId) {
-      throw new Error(`Person id is missing. Delete failed!`);
-    }
-
-    let peopleCopy = people.filter((person) => person.id !== currentPersonId);
-
-    try {
-      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setPeople(peopleCopy);
-      navigation.navigate("Home");
-    } catch (error) {
-      // TODO: set error state
-      console.warn(error);
-    }
-  };
-
-  const setContextCurrentPerson = (id) => {
-    if (!id) return;
-    const foundPerson = findPerson(id);
-    if (!foundPerson) return;
-    setCurrentPerson({ ...foundPerson });
-    setCurrentPersonId(foundPerson.id);
-    navigation.navigate("AddPeople", {});
-  };
-
-  /**
-   *
-   * @param  payload
-   */
-  const updatePerson = async (payload) => {
-    console.log("edit person");
+  const updateGiftPromise = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { id, text, image, personId } = payload;
+        const newPeople = people.map((person) => {
+          if (person.id === personId) {
+            const newGifts = person.gifts.map((gift) => {
+              if (gift.id === id) {
+                const newGift = { ...gift, text: text, image: image };
+                return newGift;
+              } else {
+                return gift;
+              }
+            });
+            const newPerson = { ...person, gifts: _.cloneDeep(newGifts) };
+            return newPerson;
+          } else {
+            return person;
+          }
+        });
+        await storeData(STORAGE_KEYS.PEOPLE, newPeople);
+        setPeople(newPeople);
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   const addGift = async (payload) => {
     const { id, text, image } = payload;
 
-    if (!currentPersonId) {
-      throw new Error(`Unexpected error during adding a gift`);
-    }
+    if (!id) {
+      const payload = { text, image, personId: currentPersonId };
 
-    const newPeople = people.map((person) => {
-      if (person.id === currentPersonId) {
-        const newPerson = _.cloneDeep(person);
-        if (!id) {
-          const newGift = {
-            id: id || uuid.v4(),
-            text: text,
-            image: image,
-          };
-          newPerson.gifts.push(newGift);
-        } else {
-          let giftList = newPerson.gifts;
-          giftList = giftList.map((gift) => {
-            if (gift.id === id) {
-              return { ...gift, text, image };
-            } else {
-              return gift;
-            }
-          });
-          newPerson.gifts = giftList;
-        }
-
-        return newPerson;
-      } else {
-        return person;
-      }
-    });
-
-    try {
-      await storeData(STORAGE_KEYS.PEOPLE, newPeople);
-      setPeople(newPeople);
-      navigation.navigate("Ideas");
-    } catch (error) {
-      // TODO: set error state
-      console.warn(error);
+      addGiftPromise(payload)
+        .then(() => {
+          navigation.navigate("Ideas", { personId: currentPersonId });
+        })
+        .catch((error) => {
+          console.warn("inserting gift:", error);
+        });
+    } else {
+      const payload = { text, image, id, personId: currentPersonId };
+      updateGiftPromise(payload)
+        .then(() => {
+          navigation.navigate("Ideas", { personId: currentPersonId });
+        })
+        .catch((error) => {
+          console.warn("updating gift:", error);
+        });
     }
   };
 
-  const updateGift = async (payload) => {
-    console.log("update gift");
-  };
+  const deleteGiftPromise = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { personId, giftId } = payload;
+        const peopleCopy = people.map((person) => {
+          if (personId === person.id) {
+            const giftsCopy = person.gifts.filter((gift) => {
+              return gift.id !== giftId;
+            });
+            return { ...person, gifts: _.cloneDeep(giftsCopy) };
+          } else {
+            return person;
+          }
+        });
+        await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+        setPeople(peopleCopy);
 
-  const deleteGift = async (payload) => {
-    const { personId, giftId } = payload;
-
-    const peopleCopy = people.map((person) => {
-      if (personId === person.id) {
-        const gifts = person.gifts.filter((gift) => gift.id !== giftId);
-
-        return { ...person, gifts };
-      } else {
-        return person;
+        resolve(true);
+      } catch (error) {
+        reject(error);
       }
     });
+  };
 
-    try {
-      await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
-      setPeople(peopleCopy);
-      navigation.navigate("Ideas");
-    } catch (error) {
-      // TODO: set error state
-      console.warn(error);
-    }
+  const deleteGift = (payload) => {
+    deleteGiftPromise(payload)
+      .then(() => {
+        navigation.navigate("Ideas", { personId: currentPersonId });
+      })
+      .catch((err) => {
+        console.warn("deleteGift", err);
+      });
   };
 
   const clearErrorMessage = () => {
@@ -322,16 +226,105 @@ function AppProvider({ children }) {
     }
   };
 
-  // loading default values for available screens. Initialization only.
-  const loadDefaultValues = async () => {
-    // setCurrentPersonDOB(DateTime.now());
-  };
-
   // app initialization - load all data from storage
   useEffect(() => {
     loadFromStorage();
-    loadDefaultValues();
   }, []);
+
+  // PROMISES
+  const createNewPersonPromise = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      const { name, dob } = payload;
+      try {
+        let personToAdd = {};
+        personToAdd = {
+          id: uuid.v4(),
+          name: name,
+          dob: dob,
+          gifts: [],
+        };
+
+        // add it to people array copy
+        let peopleCopy = _.cloneDeep(people);
+        peopleCopy.push(personToAdd);
+        peopleCopy = sortPeopleArrayByDate(peopleCopy);
+
+        await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+        setNewPerson({ ...EMPTY_PERSON });
+        setPeople(peopleCopy);
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const saveExistingPersonPromise = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      const { id, name, dob } = payload;
+
+      try {
+        const person = findPerson(id);
+        if (!person)
+          throw new Error(`Person with id ${currentPersonId} is not found`);
+
+        let peopleCopy = _.cloneDeep(people);
+
+        peopleCopy = peopleCopy.map((person) => {
+          if (person.id === id) {
+            return {
+              ...person,
+              name: name,
+              dob: dob,
+            };
+          } else {
+            return person;
+          }
+        });
+        peopleCopy = sortPeopleArrayByDate(peopleCopy);
+        await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+        setPeople(_.cloneDeep(peopleCopy));
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const deletePersonPromise = (personId) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (!personId) {
+          throw new Error(`Person id is missing. Delete failed!`);
+        }
+        let peopleCopy = people.filter((person) => person.id !== personId);
+        await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+        setPeople(peopleCopy);
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  // HELPER FUNCTIONS
+  const findPerson = (id) => {
+    const person = people.find((person) => person.id === id);
+    return person;
+  };
+
+  const findGiftsByPersonId = (personId) => {
+    const person = findPerson(personId);
+    if (!person) return [];
+    return _.cloneDeep(person.gifts);
+  };
+  const findGift = (personId, giftId) => {
+    const person = findPerson(personId);
+    if (!person) {
+      return;
+    }
+    return person.gifts.find((gift) => gift.id === giftId);
+  };
 
   return (
     <AppContext.Provider
@@ -340,33 +333,25 @@ function AppProvider({ children }) {
         people,
         addPerson,
         deletePerson,
-        updatePerson,
 
         clearErrorMessage,
         dataLoading,
         dataError,
-        colorScheme,
         toggleModal,
-        undoLastDelete,
-        lastDeletedPerson,
         modalVisible,
         setModalVisible,
-        personToDelete,
-        setPersonToDelete,
         loadFromStorage,
         findPerson,
         findGift,
         currentPerson,
         setCurrentPerson,
-        resetCurrentPerson,
         newPerson,
         setNewPerson,
         currentPersonId,
         setCurrentPersonId,
-        setContextCurrentPerson,
         addGift,
         deleteGift,
-        updateGift,
+        findGiftsByPersonId,
       }}
     >
       {children}
