@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EMPTY_PERSON } from "../util/constants";
-import globalStyles from "../styles/globalStyles";
+import { globalStyles } from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
 import { useRoute } from "@react-navigation/native";
@@ -38,19 +38,21 @@ const IdeasScreen = () => {
   }, [people]);
 
   const renderItem = (item) => {
-    // console.log(item.image);
     return <GiftListItem gift={item} personId={personId} />;
   };
 
   return (
     <View
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right,
-        flex: 1,
-      }}
+      style={[
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          flex: 1,
+        },
+        globalStyles.screen,
+      ]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Text style={[globalStyles.screenTitle]}>

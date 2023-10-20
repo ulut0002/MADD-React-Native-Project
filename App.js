@@ -5,7 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Button, PaperProvider, DefaultTheme } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
-import * as SplashScreen from "expo-splash-screen";
+// import * as SplashScreen from "expo-splash-screen";
 
 import {
   AddIdeaScreen,
@@ -59,7 +59,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RootSiblingParent>
-        <PaperProvider theme={theme}>
+        <PaperProvider>
           <NavigationContainer>
             <AppProvider>
               <Stack.Navigator initialRouteName="Home">
@@ -74,6 +74,12 @@ export default function App() {
                 <Stack.Screen
                   name="AddPeople"
                   component={AddPeopleScreen}
+                  options={({ route }) => {
+                    const personId = route.params && route.params.personId;
+                    return {
+                      title: personId ? "Edit Person" : "Add Person",
+                    };
+                  }}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="Ideas"

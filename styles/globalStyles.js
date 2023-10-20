@@ -1,21 +1,53 @@
 import { StyleSheet } from "react-native";
 
-const Colors = {
+const colors = {
+  background: "#3b2f2a",
   primary: "#f2d072",
-  secondary: "#040610",
-  accent: "#bb443e",
+  secondary: "#f5f2e9",
+  accent: "#f2d072",
+  buttonColor: "#3b2f2a",
+  primary_light: "#fae6af",
 };
 
-export default styles = StyleSheet.create({
+const defaultVerticalPadding = 20;
+
+const styles = StyleSheet.create({
+  primaryColor: {
+    color: colors.primary,
+  },
+  secondaryColor: {
+    color: colors.secondary,
+  },
+  accentColor: {
+    color: colors.accent,
+  },
+  screen: {
+    backgroundColor: colors.background,
+  },
+
+  screenContent: {
+    // paddingVertical: defaultVerticalPadding,
+    flex: 1,
+  },
+
   screenTitle: {
     fontWeight: "bold",
     fontSize: 32,
     paddingBottom: 12,
+    color: colors.secondary,
+    paddingStart: 16,
   },
 
-  emptyList: {
+  line: {
+    borderBottomColor: colors.secondary,
+    borderBottomWidth: 1,
+  },
+
+  emptyListText: {
     fontSize: 24,
     paddingBottom: 4,
+    color: colors.secondary,
+    textAlign: "center",
   },
 
   input: {
@@ -36,5 +68,42 @@ export default styles = StyleSheet.create({
     margin: 12,
   },
 
-  peopleList: {},
+  peopleList: {
+    // flex: 1,
+  },
+
+  toolbarButton: {
+    color: colors.buttonColor,
+    // color: "black",
+  },
+
+  personListItemDefault: {
+    flex: 1,
+    borderRadius: 8,
+    marginHorizontal: 12,
+  },
+
+  personListItemContainer: {
+    backgroundColor: colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 12,
+  },
+
+  personListItemDeleteContainer: {
+    flex: 1,
+    backgroundColor: "#dc3545",
+    justifyContent: "center",
+  },
+
+  personListItemEditContainer: {
+    flex: 1,
+    borderRadius: 8,
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#007bff",
+  },
 });
+
+export { colors, styles as globalStyles };

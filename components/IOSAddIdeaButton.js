@@ -1,23 +1,25 @@
-import React, { useEffect } from "react";
-import { StyleSheet } from "react-native";
-import { Button } from "react-native-paper";
+import React from "react";
+import { View } from "react-native";
+import { useApp } from "../context/appContext";
 import { useNavigation } from "@react-navigation/native";
+import { globalStyles } from "../styles/globalStyles";
+import { Button, Text } from "react-native-paper";
 
 const IOSAddIdeaButton = () => {
-  //const {} = useApp();
   const navigation = useNavigation();
 
   return (
-    <Button
-      onPress={() => {
-        navigation.navigate("AddIdea", { giftId: "" });
-      }}
-    >
-      Add Idea
-    </Button>
+    <View>
+      <Button
+        onPress={() => {
+          setCurrentPersonId(null);
+          navigation.navigate("AddIdea", { giftId: "" });
+        }}
+      >
+        <Text style={[globalStyles.toolbarButton]}>Add Idea</Text>
+      </Button>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default IOSAddIdeaButton;

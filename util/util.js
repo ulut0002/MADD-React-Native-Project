@@ -98,7 +98,7 @@ const moveFileFromCacheToDocuments = async (url) => {
       const shortFileName = getShortFileName(url);
       destinationFile = documentDir + shortFileName;
       await FileSystem.moveAsync({ from: url, to: destinationFile });
-      console.log("deleted");
+
       resolve(destinationFile);
     } catch (error) {
       reject(error);

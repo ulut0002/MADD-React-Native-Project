@@ -3,7 +3,7 @@ import { Image, KeyboardAvoidingView, Text } from "react-native";
 import { View, StyleSheet } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import globalStyles from "../styles/globalStyles";
+import { globalStyles } from "../styles/globalStyles";
 import { Button, TextInput } from "react-native-paper";
 import { Camera, CameraType } from "expo-camera";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -151,11 +151,7 @@ const AddIdeaScreen = () => {
           onPress={async () => {
             const dirInfo = await FileSystem.getInfoAsync(imageRef.current);
             // FileSystem.moveAsync({});
-            console.log(dirInfo);
             const shortname = getShortFileName(imageRef.current);
-            console.log(shortname);
-            console.log(imageRef.current.startsWith(FileSystem.cacheDirectory));
-            console.log(FileSystem.cacheDirectory);
           }}
         >
           Test

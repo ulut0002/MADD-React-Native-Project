@@ -8,6 +8,7 @@ import {
   Text,
 } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
+import { globalStyles } from "../styles/globalStyles";
 
 export default class SwipeableRow extends Component {
   renderLeftActions = (progress, dragX) => {
@@ -17,7 +18,14 @@ export default class SwipeableRow extends Component {
     });
 
     return (
-      <RectButton style={styles.leftAction} onPress={this.close}>
+      <RectButton
+        style={[
+          globalStyles.personListItemDefault,
+          globalStyles.personListItemDeleteContainer,
+          styles.leftAction,
+        ]}
+        onPress={this.close}
+      >
         <Animated.Text style={[styles.actionText]}>Delete</Animated.Text>
       </RectButton>
     );
@@ -37,7 +45,7 @@ export default class SwipeableRow extends Component {
     return (
       <Animated.View style={{ flex: 1, transform: [{ translateX: 0 }] }}>
         <RectButton
-          style={[styles.rightAction, { backgroundColor: color }]}
+          style={[globalStyles.personListItemEditContainer, styles.rightAction]}
           onPress={pressHandler}
         >
           <Text style={styles.actionText}>{text}</Text>
@@ -48,7 +56,7 @@ export default class SwipeableRow extends Component {
   renderRightActions = (progress) => (
     <View
       style={{
-        width: 80,
+        width: 100,
         flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
       }}
     >
@@ -126,18 +134,14 @@ export default class SwipeableRow extends Component {
 }
 
 const styles = StyleSheet.create({
-  leftAction: {
-    flex: 1,
-    backgroundColor: "#497AFC",
-    justifyContent: "center",
-  },
   actionText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "bold",
     backgroundColor: "transparent",
     padding: 10,
   },
-  rightAction: {
+  rightA_ction: {
     alignItems: "center",
     flex: 1,
     justifyContent: "center",

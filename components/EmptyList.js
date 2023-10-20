@@ -1,6 +1,8 @@
 import React from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
-import globalStyles from "../styles/globalStyles";
+import { globalStyles, colors } from "../styles/globalStyles";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const EmptyList = ({ text }) => {
   let arr = [];
@@ -12,18 +14,29 @@ const EmptyList = ({ text }) => {
 
   return (
     <View style={[styles.container]}>
+      <FontAwesome5
+        name="sad-tear"
+        size={32}
+        color="black"
+        style={styles.icon}
+      />
+
       {arr.map((value, index) => {
         return (
-          <Text key={index} style={[globalStyles.emptyList, styles.padding]}>
+          <Text
+            key={index}
+            style={[globalStyles.emptyListText, styles.padding]}
+          >
             {value}
           </Text>
         );
       })}
-
-      <Image
-        source={require("../assets/no-task.png")}
-        style={[styles.image]}
-      ></Image>
+      {1 == 2 && (
+        <Image
+          source={require("../assets/no-task.png")}
+          style={[styles.image]}
+        ></Image>
+      )}
     </View>
   );
 };
@@ -33,17 +46,24 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     justifyContent: "center",
     alignItems: "center",
+    alignContent: "center",
     flex: 1,
-    // borderWidth: 2,
-    // gap: 50,
+    flexDirection: "column",
+    gap: 32,
   },
+  icon: { fontSize: 74, color: colors.accent },
   image: {
     marginVertical: 40,
+
     width: 150,
     height: 150,
+    // color: colors.accent,
   },
   padding: {
-    marginBottom: 10,
+    // marginBottom: 10,
+  },
+  text: {
+    textAlign: "center",
   },
 });
 

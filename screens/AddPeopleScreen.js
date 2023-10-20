@@ -7,7 +7,7 @@ import {
   TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import globalStyles from "../styles/globalStyles";
+import { globalStyles } from "../styles/globalStyles";
 import DatePicker from "react-native-modern-datepicker";
 import { createLuxonDate, formatDateForCalendar } from "../util/util";
 import { useApp } from "../context/appContext";

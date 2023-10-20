@@ -94,7 +94,6 @@ function AppProvider({ children }) {
         if (image) {
           try {
             copiedImage = await copyFileFromCacheToDocuments(image);
-            console.log(copiedImage);
           } catch (error) {
             throw new Error("image copy error");
           }
@@ -107,7 +106,6 @@ function AppProvider({ children }) {
               text: text,
               image: copiedImage ? copiedImage : image,
             };
-            console.log("new gift", newGift);
             const giftsCopy = person.gifts.map((gift) => {
               return gift;
             });
@@ -124,7 +122,7 @@ function AppProvider({ children }) {
             await deleteFileFromCache(image);
           }
         } catch (error) {
-          console.log("error", error);
+          console.warn("error", error);
         }
 
         setPeople(newPeople);
@@ -144,7 +142,6 @@ function AppProvider({ children }) {
         if (image) {
           try {
             copiedImage = await copyFileFromCacheToDocuments(image);
-            console.log(copiedImage);
           } catch (error) {
             throw new Error("image copy error");
           }
@@ -176,7 +173,7 @@ function AppProvider({ children }) {
             await deleteFileFromCache(image);
           }
         } catch (error) {
-          console.log("error", error);
+          console.warn("error", error);
         }
         setPeople(newPeople);
         resolve(true);

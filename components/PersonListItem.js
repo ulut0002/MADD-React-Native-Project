@@ -10,6 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
 import { EMPTY_PERSON } from "../util/constants";
 import GiftSummary from "./GiftSummary";
+import { globalStyles } from "../styles/globalStyles";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
@@ -32,7 +33,10 @@ const PersonListItem = ({ person }) => {
       navigation={navigation}
     >
       <Pressable
-        style={[styles.container]}
+        style={[
+          globalStyles.personListItemDefault,
+          globalStyles.personListItemContainer,
+        ]}
         onPress={() => {
           navigation.navigate("Ideas", { personId: personObject.id });
         }}
