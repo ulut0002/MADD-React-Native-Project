@@ -8,45 +8,34 @@ import {
   Text,
 } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
-import { globalStyles } from "../styles/globalStyles";
+import { colors, globalStyles } from "../styles/globalStyles";
 
 export default class SwipeableRow extends Component {
-  renderLeftActions = (progress, dragX) => {
-    const trans = dragX.interpolate({
-      inputRange: [0, 50, 100, 101],
-      outputRange: [-20, 0, 0, 1],
-    });
-
-    return (
-      <RectButton
-        style={[
-          globalStyles.personListItemDefault,
-          globalStyles.personListItemDeleteContainer,
-          styles.leftAction,
-        ]}
-        onPress={this.close}
-      >
-        <Animated.Text style={[styles.actionText]}>Delete</Animated.Text>
-      </RectButton>
-    );
+  handleNavigate = () => {
+    this.close();
+    const navigation = this.props.navigation;
+    if (navigation && navigation.navigate)
+      navigation.navigate("AddPeople", { personId: this.props.person.id });
   };
 
-  renderRightAction = (text, color, x, progress) => {
+  renderRightAction = (text, color, x, progress, pressHandler) => {
     const trans = progress.interpolate({
       inputRange: [0, 1],
       outputRange: [x, 0],
     });
-    const pressHandler = () => {
-      this.close();
-      const navigation = this.props.navigation;
 
-      navigation.navigate("AddPeople", { personId: this.props.person.id });
-    };
     return (
       <Animated.View style={{ flex: 1, transform: [{ translateX: 0 }] }}>
         <RectButton
-          style={[globalStyles.personListItemEditContainer, styles.rightAction]}
-          onPress={pressHandler}
+          style={[
+            globalStyles.personListItemEditContainer,
+            { backgroundColor: color },
+          ]}
+          onPress={() => {
+            if (pressHandler && typeof pressHandler === "function") {
+              pressHandler();
+            }
+          }}
         >
           <Text style={styles.actionText}>{text}</Text>
         </RectButton>
@@ -54,13 +43,21 @@ export default class SwipeableRow extends Component {
     );
   };
   renderRightActions = (progress) => (
-    <View
-      style={{
-        width: 100,
-        flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
-      }}
-    >
-      {this.renderRightAction("Edit Person", "#C8C7CD", 192, progress)}
+    <View style={[globalStyles.personListActionButtonContainer]}>
+      {this.renderRightAction(
+        "Delete",
+        colors.danger,
+        60,
+        progress,
+        this.deleteRow
+      )}
+      {this.renderRightAction(
+        "Edit",
+        colors.info,
+        60,
+        progress,
+        this.handleNavigate
+      )}
     </View>
   );
 
@@ -69,34 +66,25 @@ export default class SwipeableRow extends Component {
   };
 
   deleteRow = () => {
-    const { deletePerson, person } = this.props;
-    const name = person.name || "this user";
-    const giftCount = Array.isArray(person.gifts) ? person.gifts.length : 0;
+    const { person, deletePersonWithConfirm } = this.props;
 
-    const giftCountText =
-      giftCount === 0
-        ? `${name} has no gifts in its list. `
-        : `You have entered ${giftCount} gift ideas for ${name}`;
-
-    Alert.alert(`Deleting ${name}?`, `${giftCountText}`, [
-      {
-        text: "Cancel",
-        onPress: () => {
-          this._swipeableRow.close();
-        },
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => {
-          if (typeof deletePerson === "function") {
-            deletePerson(person.id);
+    if (
+      deletePersonWithConfirm &&
+      typeof deletePersonWithConfirm === "function"
+    ) {
+      deletePersonWithConfirm(person.id)
+        .then((result) => {
+          if (result) {
+            // User is on People screen. Do nothing. The state will trigger the re-render
+          } else {
+            // not deleted
+            this._swipeableRow.close();
           }
-          this._swipeableRow.close();
-        },
-        style: "default",
-      },
-    ]);
+        })
+        .catch((error) => {
+          console.warn(error);
+        });
+    }
   };
 
   // closes the swipable
@@ -106,26 +94,14 @@ export default class SwipeableRow extends Component {
     }
   };
 
-  onSwipeableOpen = (direction) => {
-    //
-    if (direction === "left") {
-      this.deleteRow();
-    } else {
-      // do nothing
-    }
-  };
-
   render() {
     const { children } = this.props;
     return (
       <Swipeable
         ref={this.updateRef}
         friction={2}
-        leftThreshold={30}
         rightThreshold={40}
-        renderLeftActions={this.renderLeftActions}
         renderRightActions={this.renderRightActions}
-        onSwipeableOpen={this.onSwipeableOpen}
       >
         {children}
       </Swipeable>
@@ -139,11 +115,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     backgroundColor: "transparent",
-    padding: 10,
-  },
-  rightA_ction: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
+    padding: 0,
   },
 });

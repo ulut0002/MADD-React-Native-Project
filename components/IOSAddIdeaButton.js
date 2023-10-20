@@ -7,6 +7,7 @@ import { Button, Text } from "react-native-paper";
 
 const IOSAddIdeaButton = () => {
   const navigation = useNavigation();
+  const { currentPersonId, setCurrentPersonId } = useApp();
 
   return (
     <View>

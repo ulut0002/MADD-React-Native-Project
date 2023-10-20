@@ -21,7 +21,7 @@ const MODE = {
 };
 
 const AddIdeaScreen = () => {
-  const { currentPersonId } = useApp();
+  const { currentPersonId, setCurrentPersonId } = useApp();
   const insets = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
   const [mode, setMode] = useState(MODE.SHOW_REAL_IMAGE);

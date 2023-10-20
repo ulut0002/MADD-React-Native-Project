@@ -39,6 +39,7 @@ const copyFileFromCacheToDocuments = async (url) => {
   return new Promise(async (resolve, reject) => {
     try {
       const documentDir = FileSystem.documentDirectory;
+      FileSystem.cacheDirectory;
       if (url.startsWith(documentDir)) {
         // no need to move it
         resolve(url);

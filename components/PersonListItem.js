@@ -16,7 +16,12 @@ import { globalStyles } from "../styles/globalStyles";
 
 const PersonListItem = ({ person }) => {
   const navigation = useNavigation();
-  const { deletePerson, setCurrentPerson, setCurrentPersonId } = useApp();
+  const {
+    deletePerson,
+    setCurrentPerson,
+    setCurrentPersonId,
+    deletePersonWithConfirm,
+  } = useApp();
 
   const [personObject, setPersonObject] = useState(_.cloneDeep(EMPTY_PERSON));
 
@@ -29,6 +34,7 @@ const PersonListItem = ({ person }) => {
   return (
     <SwipeableRow
       deletePerson={deletePerson}
+      deletePersonWithConfirm={deletePersonWithConfirm}
       person={personObject}
       navigation={navigation}
     >

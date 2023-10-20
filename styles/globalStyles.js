@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { I18nManager, StyleSheet } from "react-native";
 
 const colors = {
   background: "#3b2f2a",
@@ -7,6 +7,8 @@ const colors = {
   accent: "#f2d072",
   buttonColor: "#3b2f2a",
   primary_light: "#fae6af",
+  danger: "#dc3545",
+  info: "#007bff",
 };
 
 const defaultVerticalPadding = 20;
@@ -54,12 +56,16 @@ const styles = StyleSheet.create({
     height: 40,
     // margin: 12,
     borderWidth: 1,
+    borderRadius: 10,
     padding: 10,
+    borderColor: colors.accent,
+    color: colors.secondary,
   },
 
   inputLabel: {
     fontWeight: "600",
     fontSize: 16,
+    color: colors.secondary,
   },
 
   inputContainer: {
@@ -77,6 +83,25 @@ const styles = StyleSheet.create({
     // color: "black",
   },
 
+  button: {
+    borderRadius: 25, // Adjust the border radius as needed
+    width: 150, // Adjust the button width as needed
+    margin: 10,
+    // maxWidth: 150,
+  },
+  lightButton: {
+    backgroundColor: colors.primary,
+  },
+  darkButton: {
+    backgroundColor: "black", // Dark background color
+  },
+  lightText: {
+    color: "black", // Light text color
+  },
+  darkText: {
+    color: colors.secondary,
+  },
+
   personListItemDefault: {
     flex: 1,
     borderRadius: 8,
@@ -90,19 +115,34 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
+  personListActionButtonContainer: {
+    width: 180,
+    flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
+    marginRight: 12,
+    justifyContent: "flex-end",
+    gap: 4,
+  },
+
   personListItemDeleteContainer: {
     flex: 1,
-    backgroundColor: "#dc3545",
+    backgroundColor: colors.danger,
     justifyContent: "center",
   },
 
   personListItemEditContainer: {
     flex: 1,
     borderRadius: 8,
-    marginRight: 12,
+    // marginRight: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#007bff",
+    backgroundColor: colors.info,
+  },
+
+  buttonContainer: {
+    flexDirection: "column",
+    alignContent: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

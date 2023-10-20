@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
 
 import uuid from "react-native-uuid";
+import { Alert } from "react-native";
 
 const AppContext = createContext();
 
@@ -84,6 +85,51 @@ function AppProvider({ children }) {
       .catch((error) => {
         console.warn("deletePerson error: ", error);
       });
+  };
+
+  const deletePersonWithConfirm = (personId) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const person = findPerson(personId);
+        if (!person) {
+          throw new Error(`Person with id ${personId} is not found`);
+        }
+
+        const name = person.name || "this person";
+
+        const giftCount = Array.isArray(person.gifts) ? person.gifts.length : 0;
+        const giftCountText =
+          giftCount === 0
+            ? `Are you sure you want to delete ${name}?`
+            : `You have entered ${giftCount} gift idea${
+                giftCount === 1 ? "" : "s"
+              } for this person. Are you sure?`;
+
+        Alert.alert(`Deleting ${name}?`, `${giftCountText}`, [
+          {
+            text: "Cancel",
+            onPress: () => {
+              resolve(false);
+            },
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: async () => {
+              try {
+                await deletePerson(personId);
+                resolve(true);
+              } catch (error) {
+                throw new Error(error);
+              }
+            },
+            style: "default",
+          },
+        ]);
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   const addGiftPromise = (payload) => {
@@ -403,7 +449,7 @@ function AppProvider({ children }) {
         people,
         addPerson,
         deletePerson,
-
+        deletePersonWithConfirm,
         clearErrorMessage,
         dataLoading,
         dataError,

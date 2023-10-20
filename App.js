@@ -92,6 +92,12 @@ export default function App() {
                 <Stack.Screen
                   name="AddIdea"
                   component={AddIdeaScreen}
+                  options={({ route }) => {
+                    const personId = route.params && route.params.personId;
+                    return {
+                      title: personId ? "Edit Idea" : "Add Idea",
+                    };
+                  }}
                 ></Stack.Screen>
               </Stack.Navigator>
             </AppProvider>

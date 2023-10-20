@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 
 const ListSeparatorComponent = () => {
-  return <View style={{ marginVertical: 8 }}></View>;
+  return <View style={{ marginVertical: 4 }}></View>;
 };
 
 const styles = StyleSheet.create({});

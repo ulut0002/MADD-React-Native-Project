@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EMPTY_PERSON } from "../util/constants";
@@ -8,6 +8,7 @@ import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
 import { useRoute } from "@react-navigation/native";
 import _ from "lodash";
+import { Text } from "react-native-paper";
 
 const IdeasScreen = () => {
   const insets = useSafeAreaInsets();
@@ -58,6 +59,7 @@ const IdeasScreen = () => {
       <Text style={[globalStyles.screenTitle]}>
         Gift Ideas for {person.name}
       </Text>
+      <View style={[globalStyles.line]}></View>
       <FlatList
         data={person.gifts}
         keyExtractor={(item) => item.id}
