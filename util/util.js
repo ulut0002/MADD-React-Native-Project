@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DateTime } from "luxon";
 import _ from "lodash";
-import { STATIC } from "./constants";
+import * as FileSystem from "expo-file-system";
 
 // Stores given key/value pair in Async Storage
 const storeData = (key, value) => {
@@ -28,6 +28,83 @@ const retrieveData = (key) => {
   });
 };
 
+const getShortFileName = (url) => {
+  if (!url) return "";
+  const urlParts = url.split("/");
+  const shortFileName = urlParts[urlParts.length - 1];
+  return shortFileName;
+};
+
+const copyFileFromCacheToDocuments = async (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const documentDir = FileSystem.documentDirectory;
+      if (url.startsWith(documentDir)) {
+        // no need to move it
+        resolve(url);
+        return;
+      }
+      const shortFileName = getShortFileName(url);
+      destinationFile = documentDir + shortFileName;
+      await FileSystem.copyAsync({ from: url, to: destinationFile });
+      resolve(destinationFile);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const deleteFileFromCache = async (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const cacheDirectory = FileSystem.cacheDirectory;
+      if (!url.startsWith(cacheDirectory)) {
+        // no need to move it
+        resolve(true);
+        return;
+      }
+      await FileSystem.deleteAsync(url);
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const deleteFileFromStorage = async (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const info = await FileSystem.getInfoAsync(url);
+      if (info.exists) {
+        await FileSystem.deleteAsync(url);
+      }
+      resolve();
+    } catch (error) {
+      //do nothing
+      reject(error);
+    }
+  });
+};
+
+const moveFileFromCacheToDocuments = async (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const documentDir = FileSystem.documentDirectory;
+      if (url.startsWith(documentDir)) {
+        // no need to move it
+        resolve(url);
+        return;
+      }
+      const shortFileName = getShortFileName(url);
+      destinationFile = documentDir + shortFileName;
+      await FileSystem.moveAsync({ from: url, to: destinationFile });
+      console.log("deleted");
+      resolve(destinationFile);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 // sorts the list by date, and returns a new array
 // make sure that this is not the state object itself, but its deep copy
 // because it mutates the array
@@ -123,4 +200,9 @@ export {
   createLuxonDate,
   sortPeopleArrayByDate,
   formatDate,
+  getShortFileName,
+  moveFileFromCacheToDocuments,
+  copyFileFromCacheToDocuments,
+  deleteFileFromCache,
+  deleteFileFromStorage,
 };

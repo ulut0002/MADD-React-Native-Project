@@ -38,6 +38,7 @@ const IdeasScreen = () => {
   }, [people]);
 
   const renderItem = (item) => {
+    // console.log(item.image);
     return <GiftListItem gift={item} personId={personId} />;
   };
 

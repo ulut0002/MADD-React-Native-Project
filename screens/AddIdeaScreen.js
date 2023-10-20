@@ -11,6 +11,8 @@ import { DisabledCameraView } from "../components";
 import { EMPTY_GIFT } from "../util/constants";
 import { useRoute } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import { getShortFileName } from "../util/util";
 
 const MODE = {
   SHOW_REAL_IMAGE: "SHOW_REAL_IMAGE",
@@ -145,6 +147,20 @@ const AddIdeaScreen = () => {
     >
       <View>
         <Text style={[globalStyles.screenTitle]}>New Idea</Text>
+        <Button
+          onPress={async () => {
+            const dirInfo = await FileSystem.getInfoAsync(imageRef.current);
+            // FileSystem.moveAsync({});
+            console.log(dirInfo);
+            const shortname = getShortFileName(imageRef.current);
+            console.log(shortname);
+            console.log(imageRef.current.startsWith(FileSystem.cacheDirectory));
+            console.log(FileSystem.cacheDirectory);
+          }}
+        >
+          Test
+        </Button>
+
         <TextInput
           placeholder="Idea"
           label={"Gift idea"}

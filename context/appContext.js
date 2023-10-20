@@ -1,8 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { retrieveData, sortPeopleArrayByDate, storeData } from "../util/util";
+import {
+  copyFileFromCacheToDocuments,
+  deleteFileFromCache,
+  deleteFileFromStorage,
+  retrieveData,
+  sortPeopleArrayByDate,
+  storeData,
+} from "../util/util";
 import { STORAGE_KEYS, EMPTY_PERSON } from "../util/constants";
-import { DateTime } from "luxon";
 import { useNavigation } from "@react-navigation/native";
+
 import _ from "lodash";
 
 import uuid from "react-native-uuid";
@@ -83,10 +90,23 @@ function AppProvider({ children }) {
     return new Promise(async (resolve, reject) => {
       try {
         const { text, image, personId } = payload;
-        console.log("addGiftPromise", payload);
+        let copiedImage = "";
+        if (image) {
+          try {
+            copiedImage = await copyFileFromCacheToDocuments(image);
+            console.log(copiedImage);
+          } catch (error) {
+            throw new Error("image copy error");
+          }
+        }
+
         const newPeople = people.map((person) => {
           if (person.id === personId) {
-            const newGift = { id: uuid.v4(), text: text, image: image };
+            const newGift = {
+              id: uuid.v4(),
+              text: text,
+              image: copiedImage ? copiedImage : image,
+            };
             console.log("new gift", newGift);
             const giftsCopy = person.gifts.map((gift) => {
               return gift;
@@ -99,6 +119,14 @@ function AppProvider({ children }) {
           }
         });
         await storeData(STORAGE_KEYS.PEOPLE, newPeople);
+        try {
+          if (copiedImage) {
+            await deleteFileFromCache(image);
+          }
+        } catch (error) {
+          console.log("error", error);
+        }
+
         setPeople(newPeople);
         resolve(true);
       } catch (error) {
@@ -111,11 +139,26 @@ function AppProvider({ children }) {
     return new Promise(async (resolve, reject) => {
       try {
         const { id, text, image, personId } = payload;
+
+        let copiedImage = "";
+        if (image) {
+          try {
+            copiedImage = await copyFileFromCacheToDocuments(image);
+            console.log(copiedImage);
+          } catch (error) {
+            throw new Error("image copy error");
+          }
+        }
+
         const newPeople = people.map((person) => {
           if (person.id === personId) {
             const newGifts = person.gifts.map((gift) => {
               if (gift.id === id) {
-                const newGift = { ...gift, text: text, image: image };
+                const newGift = {
+                  ...gift,
+                  text: text,
+                  image: copiedImage ? copiedImage : image,
+                };
                 return newGift;
               } else {
                 return gift;
@@ -128,6 +171,13 @@ function AppProvider({ children }) {
           }
         });
         await storeData(STORAGE_KEYS.PEOPLE, newPeople);
+        try {
+          if (copiedImage) {
+            await deleteFileFromCache(image);
+          }
+        } catch (error) {
+          console.log("error", error);
+        }
         setPeople(newPeople);
         resolve(true);
       } catch (error) {
@@ -291,14 +341,37 @@ function AppProvider({ children }) {
     });
   };
 
+  const deletePersonFiles = async (person) => {
+    if (!person || !person.gifts) {
+      return;
+    }
+    const gifts = person.gifts;
+    for (const gift of gifts) {
+      if (gift.image) {
+        try {
+          await deleteFileFromStorage(gift.image);
+        } catch (error) {
+          //do nothing
+        }
+      }
+    }
+  };
+
   const deletePersonPromise = (personId) => {
     return new Promise(async (resolve, reject) => {
       try {
         if (!personId) {
           throw new Error(`Person id is missing. Delete failed!`);
         }
+
+        const personToDelete = people.find((person) => {
+          return person.id === personId;
+        });
         let peopleCopy = people.filter((person) => person.id !== personId);
         await storeData(STORAGE_KEYS.PEOPLE, peopleCopy);
+        if (personToDelete) {
+          await deletePersonFiles(personToDelete);
+        }
         setPeople(peopleCopy);
         resolve(true);
       } catch (error) {
