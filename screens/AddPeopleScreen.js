@@ -33,6 +33,10 @@ const AddPeopleScreen = () => {
   const insets = useSafeAreaInsets();
   const textFieldRef = useRef(null);
 
+  const shouldDisableButton = () => {
+    return !person.name.trim() || !DOB;
+  };
+
   useEffect(() => {
     let foundPerson = findPerson(personId);
     if (!foundPerson) foundPerson = _.cloneDeep(EMPTY_PERSON);
@@ -128,10 +132,21 @@ const AddPeopleScreen = () => {
             };
             addPerson(personPayload);
           }}
-          disabled={!person.name || !DOB}
-          style={[globalStyles.button, globalStyles.lightButton]}
+          disabled={shouldDisableButton()}
+          style={[
+            globalStyles.button,
+            shouldDisableButton()
+              ? globalStyles.disabledButton
+              : globalStyles.lightButton,
+          ]}
         >
-          <Text style={[globalStyles.lightText]}>
+          <Text
+            style={[
+              shouldDisableButton()
+                ? globalStyles.disableText
+                : globalStyles.lightText,
+            ]}
+          >
             {personId ? `Update Person` : `Add Person`}
           </Text>
         </Button>

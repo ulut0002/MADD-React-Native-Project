@@ -6,18 +6,23 @@ import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 import { formatDate } from "../util/util";
+import { globalStyles } from "../styles/globalStyles";
 
-const GiftSummary = ({ person }) => {
+const GiftSummary = ({ person, birthdaySummary }) => {
   const currentDate = DateTime.now();
 
   const [formattedDate, setFormattedDate] = useState("");
   const [giftCountText, setGiftCountText] = useState("");
   const [birthdayText, setBirthdayText] = useState("");
   const [icon, setIcon] = useState("");
+  const [diff, setDiff] = useState(-1000);
 
   useEffect(() => {
     let giftArr = person.gifts || [];
     let dob = person.dob;
+    const date2 = DateTime.fromISO(dob);
+    setFormattedDate(formatDate(date2));
+    console.log(birthdaySummary);
 
     if (!Array.isArray(giftArr)) {
       giftArr = [];
@@ -30,40 +35,6 @@ const GiftSummary = ({ person }) => {
     } else {
       setGiftCountText(`${giftArr.length} gifts`);
     }
-
-    // find the date difference
-    try {
-      const date1 = DateTime.fromISO(currentDate);
-      const date2 = DateTime.fromISO(dob);
-      setFormattedDate(formatDate(date2));
-
-      const diffInDays = -1 * Math.ceil(date1.diff(date2).as("days"));
-      setIcon("birthday-cake");
-
-      if (diffInDays <= -30) {
-        setBirthdayText("");
-      } else if (diffInDays <= -7) {
-        setBirthdayText("Past month");
-      } else if (diffInDays <= -1) {
-        setBirthdayText("Past week");
-      } else if (diffInDays === 0) {
-        setBirthdayText("Today!");
-      } else if (diffInDays === 1) {
-        setBirthdayText("Tomorrow!");
-      } else if (diffInDays <= 7) {
-        setBirthdayText(`in ${diffInDays} days`);
-        setIcon("birthday-cake");
-      } else if (diffInDays <= 30) {
-        setBirthdayText("This month!");
-      } else {
-        const monthCount = Number.parseInt(Math.ceil(diffInDays / 30));
-        setBirthdayText(`In ${monthCount} months`);
-      }
-    } catch (error) {
-      // do nothing
-      console.warn(error);
-      setBirthdayText("Error");
-    }
   }, [person]);
   return (
     <View style={[styles.container]}>
@@ -72,7 +43,11 @@ const GiftSummary = ({ person }) => {
         <Text>|</Text>
         <Text>{giftCountText}</Text>
       </View>
-      <View>{birthdayText && <Text>{birthdayText}</Text>}</View>
+      <View>
+        {birthdaySummary && birthdaySummary.text && (
+          <Text>{birthdaySummary.text}</Text>
+        )}
+      </View>
     </View>
   );
 };

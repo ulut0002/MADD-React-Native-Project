@@ -37,6 +37,16 @@ const EMPTY_GIFT = {
   height: 0,
 };
 
+const BIRTHDAY_HIGHLIGHT = {
+  PAST: "personDobPast",
+  FUTURE: "personDobFuture",
+};
+const DEFAULT_BIRTHDAY_HIGHLIGHT = {
+  style: BIRTHDAY_HIGHLIGHT.FUTURE,
+  text: "",
+  numberOfDays: 0,
+};
+
 const SCREEN_NAMES = {};
 
 export {
@@ -47,4 +57,6 @@ export {
   GIFT_IDEA_VIEW_MODE,
   GIFT_IDEA_IMAGE_MODE,
   SCREEN_NAMES,
+  DEFAULT_BIRTHDAY_HIGHLIGHT,
+  BIRTHDAY_HIGHLIGHT,
 };

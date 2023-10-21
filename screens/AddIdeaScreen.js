@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Image, KeyboardAvoidingView, Text } from "react-native";
+import { Image, KeyboardAvoidingView, Text, TextInput } from "react-native";
 import { View, StyleSheet } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { globalStyles } from "../styles/globalStyles";
-import { Button, TextInput } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { Camera, CameraType } from "expo-camera";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { DisabledCameraView } from "../components";
@@ -29,6 +29,7 @@ const AddIdeaScreen = () => {
   const [camera, setCamera] = useState(null);
 
   const { addGift, deleteGift, findGift } = useApp();
+  const giftIdeaRef = useRef();
 
   const [idea, setIdea] = useState({ ...EMPTY_GIFT });
   const { giftId } = useRoute().params;
@@ -74,6 +75,10 @@ const AddIdeaScreen = () => {
       // get the gift
     } else {
       setMode(MODE.SHOW_LIVE_CAMERA);
+    }
+
+    if (giftIdeaRef && giftIdeaRef.current) {
+      giftIdeaRef.current.focus();
     }
   }, [giftId, currentPersonId]);
 
@@ -131,6 +136,14 @@ const AddIdeaScreen = () => {
     );
   }
 
+  const shouldDisableButton = () => {
+    try {
+      return !idea.text.trim();
+    } catch (error) {
+      return false;
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={[
@@ -141,160 +154,182 @@ const AddIdeaScreen = () => {
           paddingRight: insets.right,
           flex: 1,
         },
-        styles.container,
+        globalStyles.screen,
       ]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View>
-        <Text style={[globalStyles.screenTitle]}>New Idea</Text>
-        <Button
-          onPress={async () => {
-            const dirInfo = await FileSystem.getInfoAsync(imageRef.current);
-            // FileSystem.moveAsync({});
-            const shortname = getShortFileName(imageRef.current);
-          }}
-        >
-          Test
-        </Button>
+      <View style={[globalStyles.screenContent]}>
+        <Text style={[globalStyles.screenTitle]}>Gift Idea</Text>
+        <View style={[globalStyles.inputContainer]}>
+          <Text style={[globalStyles.inputLabel]}>Idea</Text>
+          <TextInput
+            ref={giftIdeaRef}
+            placeholder="Idea"
+            label={"Gift idea"}
+            value={idea.text}
+            onChangeText={(text) => {
+              setIdea({ ...idea, text });
+            }}
+            autoCapitalize="none"
+            autoCorrect={true}
+            returnKeyType="next"
+            style={[globalStyles.input]}
+          ></TextInput>
+        </View>
 
-        <TextInput
-          placeholder="Idea"
-          label={"Gift idea"}
-          value={idea.text}
-          onChangeText={(text) => {
-            setIdea({ ...idea, text });
-          }}
-          autoCapitalize="none"
-          autoCorrect={true}
-          returnKeyType="next"
-        ></TextInput>
-      </View>
-
-      <View style={styles.mediaContainer}>
-        {/**
+        <View style={styles.mediaContainer}>
+          {/**
           SHOW_LIVE_CAMERA:
           1) Taking picture for an item with no existing image (imageRef.current = false)
           2) Taking a picture as a replacement to an existing image
     */}
-        {mode === MODE.SHOW_LIVE_CAMERA && (
-          <View>
-            {cameraComponent}
-            <Button
-              onPress={async () => {
-                try {
-                  await takePicture();
-                  setMode(MODE.SHOW_DRAFT_IMAGE);
-                } catch (error) {
-                  console.error(error);
-                }
-              }}
-            >
-              Take a Picture
-            </Button>
-            {imageRef.current && (
+          {mode === MODE.SHOW_LIVE_CAMERA && (
+            <View>
+              {cameraComponent}
+              <View style={[globalStyles.buttonContainer]}>
+                <Button
+                  style={[globalStyles.button, globalStyles.lightButton]}
+                  onPress={async () => {
+                    try {
+                      await takePicture();
+                      setMode(MODE.SHOW_DRAFT_IMAGE);
+                    } catch (error) {
+                      console.error(error);
+                    }
+                  }}
+                >
+                  Take a Picture
+                </Button>
+                {imageRef.current && (
+                  <Button
+                    style={[globalStyles.button, globalStyles.lightButton]}
+                    onPress={() => {
+                      setMode(MODE.SHOW_REAL_IMAGE);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+                <Button
+                  disabled={shouldDisableButton()}
+                  style={[
+                    globalStyles.button,
+                    shouldDisableButton()
+                      ? globalStyles.disabledButton
+                      : globalStyles.lightButton,
+                  ]}
+                  onPress={() => {
+                    addGift({
+                      text: idea.text,
+                      id: giftId,
+                      image: draftImageRef.current,
+                    });
+
+                    setMode(MODE.SHOW_REAL_IMAGE);
+                  }}
+                >
+                  Save
+                </Button>
+              </View>
+            </View>
+          )}
+
+          {mode == MODE.SHOW_DRAFT_IMAGE && (
+            <View>
+              {draftImageRef && (
+                <Image
+                  source={{ uri: draftImageRef.current }}
+                  style={styles.imageLiveCameraContainer}
+                ></Image>
+              )}
+              <View style={[globalStyles.buttonContainer]}>
+                <Button
+                  style={[globalStyles.lightButton]}
+                  onPress={async () => {
+                    draftImageRef.current = "";
+                    setMode(MODE.SHOW_LIVE_CAMERA);
+                  }}
+                >
+                  Take Another Picture
+                </Button>
+
+                {imageRef.current && (
+                  <Button
+                    style={[globalStyles.lightButton]}
+                    onPress={async () => {
+                      draftImageRef.current = "";
+                      setMode(MODE.SHOW_REAL_IMAGE);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </View>
+            </View>
+          )}
+
+          {mode === MODE.SHOW_REAL_IMAGE && (
+            <View>
+              {imageRef.current && (
+                <Image
+                  source={{ uri: imageRef.current }}
+                  style={styles.imageLiveCameraContainer}
+                ></Image>
+              )}
               <Button
+                style={[globalStyles.lightButton]}
                 onPress={() => {
-                  setMode(MODE.SHOW_REAL_IMAGE);
+                  setMode(MODE.SHOW_LIVE_CAMERA);
                 }}
               >
-                Cancel
+                Replace Image
               </Button>
-            )}
+            </View>
+          )}
+
+          {mode === MODE.SHOW_DRAFT_IMAGE && (
             <Button
-              onPress={() => {
-                addGift({
+              disabled={shouldDisableButton()}
+              style={[
+                globalStyles.button,
+                shouldDisableButton()
+                  ? globalStyles.disabledButton
+                  : globalStyles.lightButton,
+              ]}
+              onPress={async () => {
+                await addGift({
                   text: idea.text,
                   id: giftId,
                   image: draftImageRef.current,
                 });
-
-                setMode(MODE.SHOW_REAL_IMAGE);
               }}
             >
               Save
             </Button>
-          </View>
-        )}
+          )}
 
-        {mode == MODE.SHOW_DRAFT_IMAGE && (
-          <View>
-            {draftImageRef && (
-              <Image
-                source={{ uri: draftImageRef.current }}
-                style={styles.imageLiveCameraContainer}
-              ></Image>
-            )}
-
+          {mode === MODE.SHOW_REAL_IMAGE && (
             <Button
-              onPress={async () => {
-                draftImageRef.current = "";
-                setMode(MODE.SHOW_LIVE_CAMERA);
-              }}
-            >
-              Take Another Picture
-            </Button>
-
-            {imageRef.current && (
-              <Button
-                onPress={async () => {
-                  draftImageRef.current = "";
-                  setMode(MODE.SHOW_REAL_IMAGE);
-                }}
-              >
-                Cancel
-              </Button>
-            )}
-          </View>
-        )}
-
-        {mode === MODE.SHOW_REAL_IMAGE && (
-          <View>
-            {imageRef.current && (
-              <Image
-                source={{ uri: imageRef.current }}
-                style={styles.imageLiveCameraContainer}
-              ></Image>
-            )}
-            <Button
+              disabled={shouldDisableButton()}
+              style={[
+                globalStyles.button,
+                shouldDisableButton()
+                  ? globalStyles.disabledButton
+                  : globalStyles.lightButton,
+              ]}
               onPress={() => {
-                setMode(MODE.SHOW_LIVE_CAMERA);
+                // return;
+                addGift({
+                  text: idea.text,
+                  id: giftId,
+                  image: imageRef.current,
+                });
               }}
             >
-              Replace Image
+              Save
             </Button>
-          </View>
-        )}
-
-        {mode === MODE.SHOW_DRAFT_IMAGE && (
-          <Button
-            disabled={!idea.text}
-            onPress={async () => {
-              await addGift({
-                text: idea.text,
-                id: giftId,
-                image: draftImageRef.current,
-              });
-            }}
-          >
-            Save
-          </Button>
-        )}
-
-        {mode === MODE.SHOW_REAL_IMAGE && (
-          <Button
-            disabled={!idea.text}
-            onPress={() => {
-              // return;
-              addGift({
-                text: idea.text,
-                id: giftId,
-                image: imageRef.current,
-              });
-            }}
-          >
-            Save
-          </Button>
-        )}
+          )}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );

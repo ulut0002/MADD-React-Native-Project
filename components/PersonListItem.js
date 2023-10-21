@@ -8,26 +8,29 @@ import { DateTime } from "luxon";
 import SwipeableRow from "./SwipeableRow";
 import { useNavigation } from "@react-navigation/native";
 import _ from "lodash";
-import { EMPTY_PERSON } from "../util/constants";
+import { DEFAULT_BIRTHDAY_HIGHLIGHT, EMPTY_PERSON } from "../util/constants";
 import GiftSummary from "./GiftSummary";
 import { globalStyles } from "../styles/globalStyles";
+import { getBirthdayDefinition } from "../util/util";
+// import { getDateDifference } from "../util/util";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
 const PersonListItem = ({ person }) => {
   const navigation = useNavigation();
-  const {
-    deletePerson,
-    setCurrentPerson,
-    setCurrentPersonId,
-    deletePersonWithConfirm,
-  } = useApp();
+  const { deletePerson, deletePersonWithConfirm } = useApp();
 
   const [personObject, setPersonObject] = useState(_.cloneDeep(EMPTY_PERSON));
+
+  const [birthdaySummary, setBirthdaySummary] = useState({
+    ...DEFAULT_BIRTHDAY_HIGHLIGHT,
+  });
 
   useEffect(() => {
     if (person) {
       setPersonObject(_.cloneDeep(person));
+      const bdDefinition = getBirthdayDefinition(person.dob);
+      setBirthdaySummary(bdDefinition);
     }
   }, [person]);
 
@@ -42,6 +45,9 @@ const PersonListItem = ({ person }) => {
         style={[
           globalStyles.personListItemDefault,
           globalStyles.personListItemContainer,
+          birthdaySummary &&
+            birthdaySummary.style &&
+            globalStyles[birthdaySummary.style],
         ]}
         onPress={() => {
           navigation.navigate("Ideas", { personId: personObject.id });
@@ -49,7 +55,10 @@ const PersonListItem = ({ person }) => {
       >
         <Text style={[styles.name]}>{personObject.name || "Unnamed"}</Text>
         <View style={[styles.dobContainer]}>
-          <GiftSummary person={personObject} />
+          <GiftSummary
+            person={personObject}
+            birthdaySummary={birthdaySummary}
+          />
         </View>
       </Pressable>
     </SwipeableRow>

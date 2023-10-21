@@ -298,19 +298,15 @@ function AppProvider({ children }) {
     setDataError("");
 
     peoplePromise = retrieveData(STORAGE_KEYS.PEOPLE);
-    giftsPromise = retrieveData(STORAGE_KEYS.GIFTS);
+
     try {
-      const [peopleValues, giftValues] = await Promise.all([
-        peoplePromise,
-        giftsPromise,
-      ]);
+      const [peopleValues] = await Promise.all([peoplePromise]);
       let peopleArr = peopleValues;
       if (peopleValues && Array.isArray(peopleValues)) {
         peopleArr = sortPeopleArrayByDate(peopleValues);
-        sortPeopleArrayByDate(peopleArr);
       }
       setPeople(peopleArr ? peopleArr : []);
-      // setGifts(giftValues ? giftValues : []);
+      // console.log(peopleArr);
 
       setDataLoading(false);
     } catch (error) {

@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import _ from "lodash";
 import * as FileSystem from "expo-file-system";
 import { SETTINGS } from "../config/config";
+import { BIRTHDAY_HIGHLIGHT, DEFAULT_BIRTHDAY_HIGHLIGHT } from "./constants";
 
 // Stores given key/value pair in Async Storage
 const storeData = (key, value) => {
@@ -149,12 +150,14 @@ const sortPeopleArrayByDate = (people) => {
 
   const baseYearEnd = DateTime.utc(baseYear, 12, 31);
 
+  // console.log("dates", baseToday, baseYearEnd);// correct
+
   // create two arrays:
   const approachingBirthdays = people.filter((person) => {
     try {
       const dob = DateTime.fromISO(person.dob);
-      const baseDOB = DateTime.utc(baseYear, dob.month, dob.day);
-      return baseDOB >= baseToday && baseDOB <= baseYearEnd;
+      const personDOB = DateTime.utc(baseYear, dob.month, dob.day);
+      return personDOB >= baseToday && personDOB <= baseYearEnd;
     } catch (error) {
       console.warn("approachingBirthdays", error);
       return false;
@@ -172,13 +175,18 @@ const sortPeopleArrayByDate = (people) => {
     }
   });
 
+  console.log("approach", approachingBirthdays.length);
+  console.log("past", pastBirthdays.length);
+
   // sort birthdays
   approachingBirthdays.sort((a, b) => {
     let dobA = DateTime.fromISO(a.dob);
     let dobB = DateTime.fromISO(b.dob);
     dobA = DateTime.utc(baseYear, dobA.month, dobA.day);
     dobB = DateTime.utc(baseYear, dobB.month, dobB.day);
-    return dobA - dobB;
+    if (dobA < dobB) return -1;
+    if (dobA > dobB) return 1;
+    return 0;
   });
 
   pastBirthdays.sort((a, b) => {
@@ -186,12 +194,114 @@ const sortPeopleArrayByDate = (people) => {
     let dobB = DateTime.fromISO(b.dob);
     dobA = DateTime.utc(baseYear, dobA.month, dobA.day);
     dobB = DateTime.utc(baseYear, dobB.month, dobB.day);
-    return dobA - dobB;
+    if (dobA < dobB) return -1;
+    if (dobA > dobB) return 1;
+    return 0;
   });
 
   result = [...approachingBirthdays, ...pastBirthdays];
+  console.log(result);
 
   return result;
+};
+
+const getBirthdayDefinition = (dob) => {
+  const numberOfDays = getDateDifference(dob);
+
+  let retObj = { ...DEFAULT_BIRTHDAY_HIGHLIGHT, numberOfDays };
+
+  let text = "";
+  let style = "";
+
+  try {
+    // if (numberOfDays)
+    switch (true) {
+      case numberOfDays <= -80:
+        text = "Passed";
+        break;
+      case numberOfDays <= -50:
+        text = "2 months ago";
+        break;
+      case numberOfDays <= -30:
+        text = "Last month";
+        break;
+      case numberOfDays <= -20:
+        text = "3 weeks ago";
+        break;
+
+      case numberOfDays <= -13:
+        text = "2 weeks ago";
+        break;
+      case numberOfDays <= -7:
+        text = "Last week";
+        break;
+      case numberOfDays <= -2:
+        text = "A few days ago";
+        break;
+      case numberOfDays === -1:
+        text = "Yesterday";
+        break;
+      case numberOfDays === 0:
+        text = "Today!";
+        break;
+      case numberOfDays === 1:
+        text = "Tomorrow!";
+        break;
+      case numberOfDays <= 7:
+        text = "This week!";
+        break;
+      case numberOfDays <= 20:
+        text = "In 2 weeks";
+        break;
+      case numberOfDays <= 27:
+        text = "In 3 weeks";
+        break;
+      case numberOfDays <= 35:
+        text = "In a month";
+        break;
+      case numberOfDays <= 65:
+        text = "In 2 months";
+        break;
+
+      default:
+        const formattedValue = DateTime.fromISO(dpb).toFormat("MMM");
+        text = `Next ${formattedValue}`;
+        break;
+    }
+  } catch (error) {
+    // do nothing
+    console.warn(error);
+    return { ...DEFAULT_BIRTHDAY_HIGHLIGHT };
+  }
+
+  retObj = { ...retObj, text };
+
+  // find the style
+  // today:
+  if (numberOfDays < 0) {
+    style = BIRTHDAY_HIGHLIGHT.PAST;
+  } else if (numberOfDays >= 0) {
+    style = BIRTHDAY_HIGHLIGHT.FUTURE;
+  }
+  retObj = { ...retObj, style };
+  return retObj;
+};
+
+const getDateDifference = (dob) => {
+  try {
+    const currentDate = DateTime.now();
+    const dobObj = DateTime.fromISO(dob);
+    const currentDateBase = DateTime.utc(
+      2000,
+      currentDate.month,
+      currentDate.day
+    );
+    const dobBase = DateTime.utc(2000, dobObj.month, dobObj.day);
+    const diffInDays = -1 * Math.ceil(currentDateBase.diff(dobBase).as("days"));
+    return diffInDays;
+  } catch (error) {
+    return null;
+  }
 };
 
 export {
@@ -207,4 +317,5 @@ export {
   copyFileFromCacheToDocuments,
   deleteFileFromCache,
   deleteFileFromStorage,
+  getBirthdayDefinition,
 };

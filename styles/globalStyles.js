@@ -3,12 +3,16 @@ import { I18nManager, StyleSheet } from "react-native";
 const colors = {
   background: "#3b2f2a",
   primary: "#f2d072",
+
   secondary: "#f5f2e9",
   accent: "#f2d072",
   buttonColor: "#3b2f2a",
   primary_light: "#fae6af",
   danger: "#dc3545",
   info: "#007bff",
+
+  futureHighlight: "#f2d072",
+  pastHighlight: "#ded3e6",
 };
 
 const defaultVerticalPadding = 20;
@@ -100,11 +104,17 @@ const styles = StyleSheet.create({
   darkButton: {
     backgroundColor: "black", // Dark background color
   },
+  disabledButton: {
+    backgroundColor: "#f2eded",
+  },
   lightText: {
     color: "black", // Light text color
   },
   darkText: {
     color: colors.secondary,
+  },
+  disableText: {
+    color: "#c9c9c1",
   },
 
   personListItemDefault: {
@@ -148,6 +158,13 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  personDobPast: {
+    backgroundColor: colors.pastHighlight,
+  },
+  personDobFuture: {
+    backgroundColor: colors.futureHighlight,
   },
 });
 

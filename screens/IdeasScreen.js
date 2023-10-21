@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EMPTY_PERSON } from "../util/constants";
-import { globalStyles } from "../styles/globalStyles";
+import { colors, globalStyles } from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
 import { useRoute } from "@react-navigation/native";
@@ -56,9 +56,14 @@ const IdeasScreen = () => {
       ]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <Text style={[globalStyles.screenTitle]}>
-        Gift Ideas for {person.name}
-      </Text>
+      <View style={{ flexDirection: "row" }}>
+        <Text style={[globalStyles.screenTitle]}>
+          Gifts for{" "}
+          <Text style={[globalStyles.screenTitle, globalStyles.primaryColor]}>
+            {person.name}
+          </Text>
+        </Text>
+      </View>
       <View style={[globalStyles.line]}></View>
       <FlatList
         data={person.gifts}
@@ -66,7 +71,11 @@ const IdeasScreen = () => {
         renderItem={({ item }) => renderItem(item)}
         ItemSeparatorComponent={<ListSeparatorComponent />}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary_light}
+          />
         }
         ListEmptyComponent={
           <EmptyList text={[`No gift ideas for yet ${person.name} yet?`]} />
