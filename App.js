@@ -76,7 +76,7 @@ export default function App() {
                   component={PeopleScreen}
                   options={({ navigation }) => ({
                     headerRight: () =>
-                      Platform.OS ? <IOSAddPersonButton /> : null,
+                      Platform.OS === "ios" ? <IOSAddPersonButton /> : null,
                   })}
                 ></Stack.Screen>
                 <Stack.Screen
@@ -94,16 +94,16 @@ export default function App() {
                   component={IdeasScreen}
                   options={({ navigation }) => ({
                     headerRight: () =>
-                      Platform.OS ? <IOSAddIdeaButton /> : null,
+                      Platform.OS === "ios" ? <IOSAddIdeaButton /> : null,
                   })}
                 ></Stack.Screen>
                 <Stack.Screen
                   name="AddIdea"
                   component={AddIdeaScreen}
                   options={({ route }) => {
-                    const personId = route.params && route.params.personId;
+                    const giftId = route.params && route.params.giftId;
                     return {
-                      title: personId ? "Edit Idea" : "Add Idea",
+                      title: giftId ? "Edit Idea" : "Add Idea",
                     };
                   }}
                 ></Stack.Screen>

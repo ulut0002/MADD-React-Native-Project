@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { useApp } from "../context/appContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EMPTY_PERSON } from "../util/constants";
 import { colors, globalStyles } from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import _ from "lodash";
-import { Text } from "react-native-paper";
+import { FAB, Text } from "react-native-paper";
 
-const IdeasScreen = () => {
+const IdeasScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
 
   const { findPerson, setCurrentPersonId, people } = useApp();
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [refreshing, setRefreshing] = useState(false);
   const { personId } = useRoute().params;
+  // const navigation = useNavigation();
 
   const reloadGiftList = () => {
     const foundPerson = findPerson(personId);
@@ -92,6 +93,17 @@ const IdeasScreen = () => {
           }
         ></FlatList>
       </View>
+
+      {Platform.OS === "android" && (
+        <FAB
+          icon="plus"
+          style={globalStyles.fab}
+          label="Add Gift"
+          onPress={() => {
+            navigation.navigate("AddIdea", { personId: personId });
+          }}
+        />
+      )}
     </View>
   );
 };

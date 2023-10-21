@@ -170,6 +170,13 @@ const styles = StyleSheet.create({
   personDobFuture: {
     backgroundColor: colors.futureHighlight,
   },
+
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
 });
 
 export { colors, styles as globalStyles };

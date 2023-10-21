@@ -11,7 +11,7 @@ import { useApp } from "../context/appContext";
 import EmptyList from "../components/EmptyList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-paper";
+import { Button, FAB } from "react-native-paper";
 import {
   ListSeparatorComponent,
   ModalAlert,
@@ -91,16 +91,15 @@ const PeopleScreen = () => {
 
         <ModalAlert />
 
-        {/* TODO: FOB button*/}
-        {!Platform.OS && (
-          <Button
-            title="Add (TODO)"
+        {Platform.OS === "android" && (
+          <FAB
+            icon="plus"
+            style={globalStyles.fab}
+            label="Add Person"
             onPress={() => {
-              navigation.navigate("AddPeople");
+              navigation.navigate("AddPeople", {});
             }}
-          >
-            Add (TODO)
-          </Button>
+          />
         )}
       </View>
     </View>

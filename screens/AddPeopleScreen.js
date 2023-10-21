@@ -69,6 +69,11 @@ const AddPeopleScreen = () => {
         <TextInput
           value={person.name}
           ref={textFieldRef}
+          theme={{
+            colors: {
+              placeholder: "#cccccc",
+            },
+          }}
           onChangeText={(value) => {
             if (personId) {
               const obj = { ...person, name: value };
