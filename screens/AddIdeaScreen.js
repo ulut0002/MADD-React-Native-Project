@@ -172,11 +172,7 @@ const AddIdeaScreen = () => {
               ref={giftIdeaRef}
               placeholder="Idea"
               label={"Gift idea"}
-              theme={{
-                colors: {
-                  placeholder: "#cccccc",
-                },
-              }}
+              placeholderTextColor={"#cccccc"}
               value={idea.text}
               onChangeText={(text) => {
                 setIdea({ ...idea, text });
