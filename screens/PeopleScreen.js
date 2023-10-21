@@ -71,12 +71,14 @@ const PeopleScreen = () => {
           style={[globalStyles.peopleList, { paddingVertical: 30 }]}
           ItemSeparatorComponent={<ListSeparatorComponent />}
           ListEmptyComponent={
-            <EmptyList
-              text={[
-                "Your list is empty.",
-                "Add some birthday buddies and let's get this party started!",
-              ]}
-            />
+            <EmptyList>
+              <Text style={[globalStyles.emptyListText, styles.padding]}>
+                Your list is empty.
+              </Text>
+              <Text style={[globalStyles.emptyListText, styles.padding]}>
+                Add some birthday buddies and let's get this party started!
+              </Text>
+            </EmptyList>
           }
           refreshControl={
             <RefreshControl

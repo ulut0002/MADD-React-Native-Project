@@ -4,34 +4,30 @@ import { globalStyles, colors } from "../styles/globalStyles";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const EmptyList = ({ text }) => {
-  let arr = [];
-  if (text && !Array.isArray(text)) {
-    arr[0] = text;
-  } else {
-    arr = text;
-  }
-
+const EmptyList = ({ children, useCakeIcon }) => {
   //TODO: Change this to "children"
+
   return (
     <View style={[styles.container]}>
-      <FontAwesome5
-        name="sad-tear"
-        size={32}
-        color="black"
-        style={styles.icon}
-      />
+      {!useCakeIcon && (
+        <FontAwesome5
+          name="sad-tear"
+          size={32}
+          color="black"
+          style={styles.icon}
+        />
+      )}
 
-      {arr.map((value, index) => {
-        return (
-          <Text
-            key={index}
-            style={[globalStyles.emptyListText, styles.padding]}
-          >
-            {value}
-          </Text>
-        );
-      })}
+      {useCakeIcon && (
+        <FontAwesome5
+          name="gifts"
+          size={32}
+          color="black"
+          style={styles.icon}
+        />
+      )}
+
+      {children}
     </View>
   );
 };

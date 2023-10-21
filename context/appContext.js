@@ -132,10 +132,55 @@ function AppProvider({ children }) {
     });
   };
 
+  const deleteGiftWithConfirm = (payload) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { personId, giftId } = payload;
+        if (!personId || !giftId) {
+          throw new Error("PersonId and/or giftId is missing");
+        }
+        const gift = findGift(personId, giftId);
+        if (!gift) {
+          resolve(true);
+        }
+        Alert.alert(
+          `Deleting ${gift.text}`,
+          `Are you sure you want to delete this gift?`,
+          [
+            {
+              text: "Cancel",
+              onPress: () => {
+                resolve(false);
+              },
+              style: "cancel",
+            },
+            {
+              text: "OK",
+              onPress: async () => {
+                try {
+                  await deleteGiftPromise(payload);
+                  resolve(true);
+                } catch (error) {
+                  throw new Error(error);
+                }
+              },
+              style: "default",
+            },
+          ]
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
   const addGiftPromise = (payload) => {
     return new Promise(async (resolve, reject) => {
       try {
         const { text, image, personId } = payload;
+        if (!personId) {
+          throw new Error(`personId is not defined`);
+        }
         let copiedImage = "";
         if (image) {
           try {
@@ -146,7 +191,9 @@ function AppProvider({ children }) {
         }
 
         const newPeople = people.map((person) => {
+          console.log("person.Id", person.id, "   ", "personId", personId);
           if (person.id === personId) {
+            console.log("found the guy");
             const newGift = {
               id: uuid.v4(),
               text: text,
@@ -156,7 +203,7 @@ function AppProvider({ children }) {
               return gift;
             });
             giftsCopy.push(newGift);
-            const newPerson = { ...person, gifts: giftsCopy };
+            const newPerson = { ...person, gifts: _.cloneDeep(giftsCopy) };
             return newPerson;
           } else {
             return person;
@@ -168,13 +215,13 @@ function AppProvider({ children }) {
             await deleteFileFromCache(image);
           }
         } catch (error) {
-          console.warn("error", error);
+          console.warn("Error deleting the cache image", error);
         }
 
         setPeople(newPeople);
         resolve(true);
       } catch (error) {
-        reject(error);
+        reject(error || "error happened");
       }
     });
   };
@@ -233,11 +280,12 @@ function AppProvider({ children }) {
     const { id, text, image } = payload;
 
     if (!id) {
-      const payload = { text, image, personId: currentPersonId };
+      const personId = currentPersonId;
+      const payload = { text, image, personId };
 
       addGiftPromise(payload)
         .then(() => {
-          navigation.navigate("Ideas", { personId: currentPersonId });
+          navigation.navigate("Ideas", { personId: personId });
         })
         .catch((error) => {
           console.warn("inserting gift:", error);
@@ -464,6 +512,7 @@ function AppProvider({ children }) {
         addGift,
         deleteGift,
         findGiftsByPersonId,
+        deleteGiftWithConfirm,
       }}
     >
       {children}

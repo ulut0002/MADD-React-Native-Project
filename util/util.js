@@ -175,8 +175,8 @@ const sortPeopleArrayByDate = (people) => {
     }
   });
 
-  console.log("approach", approachingBirthdays.length);
-  console.log("past", pastBirthdays.length);
+  // console.log("approach", approachingBirthdays.length);
+  // console.log("past", pastBirthdays.length);
 
   // sort birthdays
   approachingBirthdays.sort((a, b) => {
@@ -200,7 +200,7 @@ const sortPeopleArrayByDate = (people) => {
   });
 
   result = [...approachingBirthdays, ...pastBirthdays];
-  console.log(result);
+  // console.log(result);
 
   return result;
 };

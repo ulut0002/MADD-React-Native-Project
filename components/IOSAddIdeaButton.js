@@ -13,7 +13,6 @@ const IOSAddIdeaButton = () => {
     <View>
       <Button
         onPress={() => {
-          setCurrentPersonId(null);
           navigation.navigate("AddIdea", { giftId: "" });
         }}
       >

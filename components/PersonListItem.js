@@ -18,7 +18,8 @@ import { getBirthdayDefinition } from "../util/util";
 
 const PersonListItem = ({ person }) => {
   const navigation = useNavigation();
-  const { deletePerson, deletePersonWithConfirm } = useApp();
+  const { deletePerson, deletePersonWithConfirm, setCurrentPersonId } =
+    useApp();
 
   const [personObject, setPersonObject] = useState(_.cloneDeep(EMPTY_PERSON));
 

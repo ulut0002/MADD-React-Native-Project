@@ -138,6 +138,10 @@ const AddIdeaScreen = () => {
 
   const shouldDisableButton = () => {
     try {
+      if (mode === MODE.SHOW_LIVE_CAMERA) {
+        return true;
+      }
+
       return !idea.text.trim();
     } catch (error) {
       return false;

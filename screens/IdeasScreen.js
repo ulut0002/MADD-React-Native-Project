@@ -21,7 +21,7 @@ const IdeasScreen = () => {
   const reloadGiftList = () => {
     const foundPerson = findPerson(personId);
 
-    setCurrentPersonId(foundPerson ? foundPerson.id : ""); //needed for add-gift page
+    // setCurrentPersonId(foundPerson ? foundPerson.id : ""); //needed for add-gift page
 
     if (foundPerson) {
       setPerson(_.cloneDeep(foundPerson));
@@ -37,6 +37,11 @@ const IdeasScreen = () => {
   useEffect(() => {
     reloadGiftList();
   }, [people]);
+
+  useEffect(() => {
+    console.log("personId in Ideas", personId);
+    setCurrentPersonId(personId);
+  }, [personId]);
 
   const renderItem = (item) => {
     return <GiftListItem gift={item} personId={personId} />;
@@ -65,22 +70,29 @@ const IdeasScreen = () => {
         </Text>
       </View>
       <View style={[globalStyles.line]}></View>
-      <FlatList
-        data={person.gifts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => renderItem(item)}
-        ItemSeparatorComponent={<ListSeparatorComponent />}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary_light}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyList text={[`No gift ideas for yet ${person.name} yet?`]} />
-        }
-      ></FlatList>
+      <View style={[globalStyles.screenContent]}>
+        <FlatList
+          data={person.gifts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => renderItem(item)}
+          style={[globalStyles.peopleList, { paddingVertical: 30 }]}
+          ItemSeparatorComponent={<ListSeparatorComponent />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary_light}
+            />
+          }
+          ListEmptyComponent={
+            <EmptyList useCakeIcon={true}>
+              <Text style={[globalStyles.emptyListText, styles.padding]}>
+                {`No gift ideas for yet ${person.name} yet?`}
+              </Text>
+            </EmptyList>
+          }
+        ></FlatList>
+      </View>
     </View>
   );
 };

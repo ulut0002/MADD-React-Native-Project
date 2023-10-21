@@ -144,6 +144,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+  danger: {
+    color: colors.danger,
+  },
+
   personListItemEditContainer: {
     flex: 1,
     borderRadius: 8,
