@@ -39,7 +39,6 @@ const IdeasScreen = () => {
   }, [people]);
 
   useEffect(() => {
-    console.log("personId in Ideas", personId);
     setCurrentPersonId(personId);
   }, [personId]);
 

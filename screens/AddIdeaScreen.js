@@ -182,11 +182,6 @@ const AddIdeaScreen = () => {
         </View>
 
         <View style={styles.mediaContainer}>
-          {/**
-          SHOW_LIVE_CAMERA:
-          1) Taking picture for an item with no existing image (imageRef.current = false)
-          2) Taking a picture as a replacement to an existing image
-    */}
           {mode === MODE.SHOW_LIVE_CAMERA && (
             <View>
               {cameraComponent}
@@ -202,7 +197,7 @@ const AddIdeaScreen = () => {
                     }
                   }}
                 >
-                  Take a Picture
+                  <Text>Take a Picture</Text>
                 </Button>
                 {imageRef.current && (
                   <Button
@@ -211,34 +206,14 @@ const AddIdeaScreen = () => {
                       setMode(MODE.SHOW_REAL_IMAGE);
                     }}
                   >
-                    Cancel
+                    <Text>Cancel</Text>
                   </Button>
                 )}
-                <Button
-                  disabled={shouldDisableButton()}
-                  style={[
-                    globalStyles.button,
-                    shouldDisableButton()
-                      ? globalStyles.disabledButton
-                      : globalStyles.lightButton,
-                  ]}
-                  onPress={() => {
-                    addGift({
-                      text: idea.text,
-                      id: giftId,
-                      image: draftImageRef.current,
-                    });
-
-                    setMode(MODE.SHOW_REAL_IMAGE);
-                  }}
-                >
-                  Save
-                </Button>
               </View>
             </View>
           )}
 
-          {mode == MODE.SHOW_DRAFT_IMAGE && (
+          {mode === MODE.SHOW_DRAFT_IMAGE && (
             <View>
               {draftImageRef && (
                 <Image
@@ -248,7 +223,7 @@ const AddIdeaScreen = () => {
               )}
               <View style={[globalStyles.buttonContainer]}>
                 <Button
-                  style={[globalStyles.lightButton]}
+                  style={[globalStyles.button, globalStyles.lightButton]}
                   onPress={async () => {
                     draftImageRef.current = "";
                     setMode(MODE.SHOW_LIVE_CAMERA);
@@ -268,6 +243,25 @@ const AddIdeaScreen = () => {
                     Cancel
                   </Button>
                 )}
+
+                <Button
+                  disabled={shouldDisableButton()}
+                  style={[
+                    globalStyles.button,
+                    shouldDisableButton()
+                      ? globalStyles.disabledButton
+                      : globalStyles.lightButton,
+                  ]}
+                  onPress={async () => {
+                    await addGift({
+                      text: idea.text,
+                      id: giftId,
+                      image: draftImageRef.current,
+                    });
+                  }}
+                >
+                  Save
+                </Button>
               </View>
             </View>
           )}
@@ -280,58 +274,37 @@ const AddIdeaScreen = () => {
                   style={styles.imageLiveCameraContainer}
                 ></Image>
               )}
-              <Button
-                style={[globalStyles.lightButton]}
-                onPress={() => {
-                  setMode(MODE.SHOW_LIVE_CAMERA);
-                }}
-              >
-                Replace Image
-              </Button>
+              <View style={[globalStyles.buttonContainer]}>
+                <Button
+                  style={[globalStyles.button, globalStyles.lightButton]}
+                  onPress={() => {
+                    setMode(MODE.SHOW_LIVE_CAMERA);
+                  }}
+                >
+                  Replace Image
+                </Button>
+
+                <Button
+                  disabled={shouldDisableButton()}
+                  style={[
+                    globalStyles.button,
+                    shouldDisableButton()
+                      ? globalStyles.disabledButton
+                      : globalStyles.lightButton,
+                  ]}
+                  onPress={() => {
+                    // return;
+                    addGift({
+                      text: idea.text,
+                      id: giftId,
+                      image: imageRef.current,
+                    });
+                  }}
+                >
+                  Save
+                </Button>
+              </View>
             </View>
-          )}
-
-          {mode === MODE.SHOW_DRAFT_IMAGE && (
-            <Button
-              disabled={shouldDisableButton()}
-              style={[
-                globalStyles.button,
-                shouldDisableButton()
-                  ? globalStyles.disabledButton
-                  : globalStyles.lightButton,
-              ]}
-              onPress={async () => {
-                await addGift({
-                  text: idea.text,
-                  id: giftId,
-                  image: draftImageRef.current,
-                });
-              }}
-            >
-              Save
-            </Button>
-          )}
-
-          {mode === MODE.SHOW_REAL_IMAGE && (
-            <Button
-              disabled={shouldDisableButton()}
-              style={[
-                globalStyles.button,
-                shouldDisableButton()
-                  ? globalStyles.disabledButton
-                  : globalStyles.lightButton,
-              ]}
-              onPress={() => {
-                // return;
-                addGift({
-                  text: idea.text,
-                  id: giftId,
-                  image: imageRef.current,
-                });
-              }}
-            >
-              Save
-            </Button>
           )}
         </View>
       </View>

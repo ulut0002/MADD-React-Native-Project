@@ -150,8 +150,6 @@ const sortPeopleArrayByDate = (people) => {
 
   const baseYearEnd = DateTime.utc(baseYear, 12, 31);
 
-  // console.log("dates", baseToday, baseYearEnd);// correct
-
   // create two arrays:
   const approachingBirthdays = people.filter((person) => {
     try {
@@ -175,9 +173,6 @@ const sortPeopleArrayByDate = (people) => {
     }
   });
 
-  // console.log("approach", approachingBirthdays.length);
-  // console.log("past", pastBirthdays.length);
-
   // sort birthdays
   approachingBirthdays.sort((a, b) => {
     let dobA = DateTime.fromISO(a.dob);
@@ -194,13 +189,12 @@ const sortPeopleArrayByDate = (people) => {
     let dobB = DateTime.fromISO(b.dob);
     dobA = DateTime.utc(baseYear, dobA.month, dobA.day);
     dobB = DateTime.utc(baseYear, dobB.month, dobB.day);
-    if (dobA < dobB) return -1;
-    if (dobA > dobB) return 1;
+    if (dobA < dobB) return 1;
+    if (dobA > dobB) return -1;
     return 0;
   });
 
   result = [...approachingBirthdays, ...pastBirthdays];
-  // console.log(result);
 
   return result;
 };

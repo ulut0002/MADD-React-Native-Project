@@ -191,9 +191,7 @@ function AppProvider({ children }) {
         }
 
         const newPeople = people.map((person) => {
-          console.log("person.Id", person.id, "   ", "personId", personId);
           if (person.id === personId) {
-            console.log("found the guy");
             const newGift = {
               id: uuid.v4(),
               text: text,
@@ -354,7 +352,6 @@ function AppProvider({ children }) {
         peopleArr = sortPeopleArrayByDate(peopleValues);
       }
       setPeople(peopleArr ? peopleArr : []);
-      // console.log(peopleArr);
 
       setDataLoading(false);
     } catch (error) {

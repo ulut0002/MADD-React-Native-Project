@@ -22,7 +22,6 @@ const GiftSummary = ({ person, birthdaySummary }) => {
     let dob = person.dob;
     const date2 = DateTime.fromISO(dob);
     setFormattedDate(formatDate(date2));
-    // console.log(birthdaySummary);
 
     if (!Array.isArray(giftArr)) {
       giftArr = [];

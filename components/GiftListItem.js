@@ -1,7 +1,7 @@
 // source: https://snack.expo.dev/
 
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Pressable, Image } from "react-native";
+import { View, StyleSheet, Pressable, Image, Modal } from "react-native";
 import { useApp } from "../context/appContext";
 import { DateTime } from "luxon";
 
@@ -17,60 +17,114 @@ import { globalStyles } from "../styles/globalStyles";
 
 const GiftListItem = ({ gift, personId }) => {
   const navigation = useNavigation();
-  const { deleteGift, deleteGiftWithConfirm } = useApp();
+  const { deleteGiftWithConfirm } = useApp();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [imageSize, setImageSize] = useState({ width: 300, height: 400 });
+
+  useEffect(() => {
+    if (gift.image) {
+      const size = Image.getSize(gift.image, (width, height) => {
+        if (height !== 0 && width !== 0) {
+          const defaultImageWidth = 300;
+          const imageHeight = Math.ceil(defaultImageWidth * (height / width));
+          setImageSize({ width: defaultImageWidth, height: imageHeight });
+        } else {
+        }
+      });
+    }
+  }, []);
 
   return (
-    <Pressable
-      onPress={() => {
-        navigation.navigate("AddIdea", { giftId: gift.id });
-      }}
-    >
-      <View style={[styles.container]}>
-        <View style={{ flexDirection: "row", flex: 1, gap: 10 }}>
-          {gift.image && (
-            <Pressable
-              onPress={() => {
-                console.log("pressed");
-              }}
-            >
+    <View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            {!gift.image && (
+              <Text style={styles.modalText}>
+                You haven't saved a picture for this gift idea yet.
+              </Text>
+            )}
+
+            {gift.image && (
               <Image
                 source={{ uri: gift.image }}
-                style={{ width: 50, height: 50 }}
+                style={{ width: imageSize.width, height: imageSize.height }}
               ></Image>
-            </Pressable>
-          )}
+            )}
 
-          {!gift.image && (
-            <MaterialIcons name="image-not-supported" size={50} color="black" />
-          )}
-
-          <Text style={[styles.name]}>{gift.text || "Unnamed"}</Text>
+            <Button
+              style={[globalStyles.button, globalStyles.lightButton]}
+              onPress={() => setModalVisible(!modalVisible)}
+            >
+              Close
+            </Button>
+          </View>
         </View>
-        <View style={{ flexDirection: "row", gap: 0 }}>
-          <Button
-            onPress={async () => {
-              deleteGiftWithConfirm({ giftId: gift.id, personId: personId })
-                .then(() => {})
-                .catch((err) => {});
-            }}
-          >
-            <View style={styles.deleteButton}>
-              <MaterialIcons
-                name="delete"
-                size={24}
-                color="black"
-                style={[{ alignSelf: "center" }, globalStyles.danger]}
-              />
-              <Text
-                style={[styles.deleteColor, { color: globalStyles.danger }]}
+      </Modal>
+
+      <Pressable
+        onPress={() => {
+          navigation.navigate("AddIdea", { giftId: gift.id });
+        }}
+      >
+        <View style={[styles.container]}>
+          <View style={{ flexDirection: "row", flex: 1, gap: 10 }}>
+            {gift.image && (
+              <Pressable
+                onPress={() => {
+                  setModalVisible(!modalVisible);
+                }}
               >
-                Delete
-              </Text>
-            </View>
-          </Button>
+                <Image
+                  source={{ uri: gift.image }}
+                  style={{ width: 50, height: 50 }}
+                ></Image>
+              </Pressable>
+            )}
+
+            {!gift.image && (
+              <MaterialIcons
+                name="image-not-supported"
+                size={50}
+                color="black"
+              />
+            )}
+
+            <Text style={[styles.name]}>{gift.text || "Unnamed"}</Text>
+          </View>
+          <View style={{ flexDirection: "row", gap: 0 }}>
+            <Button
+              onPress={async () => {
+                deleteGiftWithConfirm({ giftId: gift.id, personId: personId })
+                  .then(() => {})
+                  .catch((err) => {});
+              }}
+            >
+              <View style={styles.deleteButton}>
+                <MaterialIcons
+                  name="delete"
+                  size={24}
+                  color="black"
+                  style={[{ alignSelf: "center" }, globalStyles.danger]}
+                />
+                <Text
+                  style={[styles.deleteColor, { color: globalStyles.danger }]}
+                >
+                  Delete
+                </Text>
+              </View>
+            </Button>
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 };
 
@@ -85,6 +139,29 @@ const styles = StyleSheet.create({
     alignContent: "center",
     alignItems: "center",
     gap: 12,
+  },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 
   deleteButton: {
@@ -126,41 +203,3 @@ const styles = StyleSheet.create({
 });
 
 export default GiftListItem;
-
-/*
-
-{!gift.image && <Avatar.Icon size={50} icon={giftIcon}></Avatar.Icon>}
-  return (
-    <SwipeableGiftRow
-      deleteGift={deleteGift}
-      gift={gift}
-      personId={personId}
-      navigation={navigation}
-    >
-      <Pressable
-        onPress={() => {
-          navigation.navigate("AddIdea", { giftId: gift.id });
-        }}
-      >
-        <View style={[styles.container]}>
-          {gift.image && (
-            <Pressable
-              onPress={() => {
-                console.log("pressed");
-              }}
-            >
-              <Image
-                source={{ uri: gift.image }}
-                style={{ width: 50, height: 50 }}
-              ></Image>
-            </Pressable>
-          )}
-
-          {!gift.image && <Avatar.Icon size={50} icon={giftIcon}></Avatar.Icon>}
-          <Text style={[styles.name]}>{gift.text || "Unnamed"}</Text>
-        </View>
-      </Pressable>
-    </SwipeableGiftRow>
-  );
-
-*/
