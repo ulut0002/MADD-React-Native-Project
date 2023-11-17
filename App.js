@@ -1,12 +1,16 @@
-import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { AppProvider } from "./context/appContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Button, PaperProvider, DefaultTheme } from "react-native-paper";
+import {
+  Button,
+  PaperProvider,
+  DefaultTheme,
+  ActivityIndicator,
+} from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
-// import * as SplashScreen from "expo-splash-screen";
-import { useFonts } from "expo-font";
+// import { useFonts } from "expo-font";
+import * as Font from "expo-font";
 
 import {
   AddIdeaScreen,
@@ -19,49 +23,33 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { IOSAddPersonButton, IOSAddIdeaButton } from "./components";
 import { useEffect, useState } from "react";
 
-const theme = {
-  ...DefaultTheme,
-  roundness: 2,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: "#f2d072",
-    secondary: "#040610",
-    accent: "#bb443e",
-    background: "blue",
-  },
-};
-
-// SplashScreen.preventAutoHideAsync();
-
 export default function App() {
-  const [appIsReady, setAppIsReady] = useState(false);
-  const [fontsLoaded] = useFonts({
-    "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
-  });
+  // const [fontsLoaded] = useFonts({
+  //   "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
+  // });
+
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    async function prepare() {
+    const loadFonts = async () => {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        await Font.loadAsync(Entypo.font);
-        // Artificially delay for two seconds to simulate a slow loading
-        // experience. Please remove this if you copy and paste the code!
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        // Tell the application to render
-        setAppIsReady(true);
+        await Font.loadAsync({
+          "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
+        });
+        setFontsLoaded(true);
+      } catch (error) {
+        // Handle font loading error
+        console.error("Error loading fonts:", error);
       }
-    }
+    };
 
-    // prepare();
+    loadFonts();
   }, []);
 
   const Stack = createNativeStackNavigator();
 
   if (!fontsLoaded) {
-    return null;
+    return <ActivityIndicator />;
   }
 
   return (

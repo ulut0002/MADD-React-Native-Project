@@ -4,6 +4,7 @@ import _ from "lodash";
 import * as FileSystem from "expo-file-system";
 import { SETTINGS } from "../config/config";
 import { BIRTHDAY_HIGHLIGHT, DEFAULT_BIRTHDAY_HIGHLIGHT } from "./constants";
+import { useFonts } from "expo-font";
 
 // Stores given key/value pair in Async Storage
 const storeData = (key, value) => {
@@ -298,6 +299,12 @@ const getDateDifference = (dob) => {
   }
 };
 
+const loadFonts = async () => {
+  return useFonts({
+    "StickNoBills-Bold": require("../assets/fonts/StickNoBills-Bold.ttf"),
+  });
+};
+
 export {
   storeData,
   retrieveData,
@@ -312,4 +319,5 @@ export {
   deleteFileFromCache,
   deleteFileFromStorage,
   getBirthdayDefinition,
+  loadFonts,
 };
