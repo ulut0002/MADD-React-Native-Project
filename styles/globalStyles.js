@@ -1,18 +1,27 @@
 import { I18nManager, StyleSheet } from "react-native";
 
 const colors = {
-  background: "#3b2f2a",
+  background: "#24262e",
   primary: "#f2d072",
 
   secondary: "#f5f2e9",
   accent: "#f2d072",
   buttonColor: "#3b2f2a",
-  primary_light: "#fae6af",
+  primary_light: "#f5cbcf",
   danger: "#dc3545",
   info: "#007bff",
 
-  futureHighlight: "#f2d072",
-  pastHighlight: "#ded3e6",
+  futureHighlight: "#e4969e",
+  pastHighlight: "#c8bcd1",
+
+  calendar_text_header_color: "#FFA25B",
+  calendar_text_default_color: "#F6E7C1",
+  calendar_text_selected_text_color: "#fff",
+  calendar_main_color: "#F4722B",
+  calendar_text_secondary_color: "#D6C7A1",
+  calendar_border_color: "#f2d072",
+
+  text_field_place_holder_color: "#cccccc",
 };
 
 const defaultVerticalPadding = 20;
@@ -119,15 +128,15 @@ const styles = StyleSheet.create({
 
   personListItemDefault: {
     flex: 1,
-    borderRadius: 8,
-    marginHorizontal: 12,
+    borderRadius: 4,
+    marginHorizontal: 16,
   },
 
   personListItemContainer: {
     backgroundColor: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    gap: 4,
   },
 
   personListActionButtonContainer: {
@@ -176,6 +185,10 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+
+  row: {
+    flexDirection: "row",
   },
 });
 

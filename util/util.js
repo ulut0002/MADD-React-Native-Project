@@ -5,6 +5,7 @@ import * as FileSystem from "expo-file-system";
 import { SETTINGS } from "../config/config";
 import { BIRTHDAY_HIGHLIGHT, DEFAULT_BIRTHDAY_HIGHLIGHT } from "./constants";
 import { useFonts } from "expo-font";
+import { Platform } from "react-native";
 
 // Stores given key/value pair in Async Storage
 const storeData = (key, value) => {
@@ -234,28 +235,28 @@ const getBirthdayDefinition = (dob) => {
         text = "A few days ago";
         break;
       case numberOfDays === -1:
-        text = "Yesterday";
+        text = "It was yesterday!";
         break;
       case numberOfDays === 0:
-        text = "Today!";
+        text = "It is Today!";
         break;
       case numberOfDays === 1:
-        text = "Tomorrow!";
+        text = "It is Tomorrow!";
         break;
       case numberOfDays <= 7:
-        text = "This week!";
+        text = "It is this week!";
         break;
       case numberOfDays <= 20:
-        text = "In 2 weeks";
+        text = "in 2 weeks";
         break;
       case numberOfDays <= 27:
-        text = "In 3 weeks";
+        text = "in 3 weeks";
         break;
       case numberOfDays <= 35:
-        text = "In a month";
+        text = "in a month";
         break;
       case numberOfDays <= 65:
-        text = "In 2 months";
+        text = "in 2 months";
         break;
 
       default:
@@ -305,6 +306,25 @@ const loadFonts = async () => {
   });
 };
 
+const isRealDevice = () => {
+  if (Platform.OS === "ios" && Platform.isTesting) {
+    console.log("1");
+    return false;
+  } else if (Platform.OS === "ios") {
+    console.log("2");
+    return true;
+  } else if (Platform.OS === "android" && Platform.isTesting) {
+    console.log("3");
+    return false;
+  } else if (Platform.OS === "android") {
+    console.log("4");
+    return false;
+  } else {
+    console.log("5");
+    return true;
+  }
+};
+
 export {
   storeData,
   retrieveData,
@@ -320,4 +340,5 @@ export {
   deleteFileFromStorage,
   getBirthdayDefinition,
   loadFonts,
+  isRealDevice,
 };

@@ -6,9 +6,11 @@ import {
   retrieveData,
   sortPeopleArrayByDate,
   storeData,
+  isRealDevice as checkIfRealDevice,
 } from "../util/util";
 import { STORAGE_KEYS, EMPTY_PERSON } from "../util/constants";
 import { useNavigation } from "@react-navigation/native";
+import { isEmulator } from "react-native-device-info";
 
 import _ from "lodash";
 
@@ -35,6 +37,8 @@ function AppProvider({ children }) {
 
   const [modalVisible, setModalVisible] = useState(false);
 
+  const [isRealDevice, setIsRealDevice] = useState(true);
+
   const navigation = useNavigation();
 
   // When people array changes, sort it by birthday
@@ -45,7 +49,18 @@ function AppProvider({ children }) {
       await storeData(STORAGE_KEYS.GIFTS, null);
     };
 
+    // const getDeviceInfo = async () => {
+    //   DeviceInfo.isEmulator
+    //     .then((isEmulator) => {
+    //       setIsRealDevice(isEmulator);
+    //     })
+    //     .catch((error) => {
+    //       setIsRealDevice(false);
+    //     });
+    // };
+
     cleanData();
+    // getDeviceInfo();
   }, []);
 
   /**
@@ -56,7 +71,7 @@ function AppProvider({ children }) {
     setModalVisible(!modalVisible);
   };
 
-  const addPerson = async (payload) => {
+  const addPersonAsync = async (payload) => {
     const { id } = payload;
     if (id) {
       saveExistingPersonPromise(payload)
@@ -488,7 +503,7 @@ function AppProvider({ children }) {
       value={{
         // gifts,
         people,
-        addPerson,
+        addPersonAsync,
         deletePerson,
         deletePersonWithConfirm,
         clearErrorMessage,
@@ -510,6 +525,7 @@ function AppProvider({ children }) {
         deleteGift,
         findGiftsByPersonId,
         deleteGiftWithConfirm,
+        isRealDevice,
       }}
     >
       {children}

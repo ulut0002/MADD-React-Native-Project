@@ -6,46 +6,66 @@ import { EMPTY_PERSON } from "../util/constants";
 import { colors, globalStyles } from "../styles/globalStyles";
 import { FlatList, RefreshControl } from "react-native-gesture-handler";
 import { EmptyList, GiftListItem, ListSeparatorComponent } from "../components";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import _ from "lodash";
 import { FAB, Text } from "react-native-paper";
 
+// Component for displaying gift ideas for a person
+
 const IdeasScreen = ({ navigation }) => {
+  // Get safe area insets for handling device notch and status bar
   const insets = useSafeAreaInsets();
 
+  // Use context to access app state and functions
   const { findPerson, setCurrentPersonId, people } = useApp();
-  const [person, setPerson] = useState({ ...EMPTY_PERSON });
-  const [refreshing, setRefreshing] = useState(false);
-  const { personId } = useRoute().params;
-  // const navigation = useNavigation();
 
-  const reloadGiftList = () => {
+  // State to manage the person and gift list
+  const [person, setPerson] = useState({ ...EMPTY_PERSON });
+
+  // State for managing refresh status
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Extract personId from the navigation route parameters
+  const { personId } = useRoute().params;
+
+  // Function to reload the gift list for the current person
+  const reloadGiftList = React.useCallback(() => {
     const foundPerson = findPerson(personId);
 
-    // setCurrentPersonId(foundPerson ? foundPerson.id : ""); //needed for add-gift page
-
     if (foundPerson) {
-      setPerson(_.cloneDeep(foundPerson));
+      setPerson(JSON.parse(JSON.stringify(foundPerson)));
     }
-  };
+  }, [findPerson, personId]);
 
-  const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    reloadGiftList();
-    setRefreshing(false);
-  }, [people]);
-
+  // Effect to reload the gift list when the people data changes
   useEffect(() => {
     reloadGiftList();
   }, [people]);
 
+  // Effect to update the current person ID when it changes
   useEffect(() => {
     setCurrentPersonId(personId);
   }, [personId]);
 
-  const renderItem = (item) => {
-    return <GiftListItem gift={item} personId={personId} />;
-  };
+  // Function to render each item in the FlatList
+  const renderItem = React.useCallback(
+    (item) => {
+      return <GiftListItem gift={item} personId={personId} />;
+    },
+    [personId]
+  );
+
+  // Function to handle manual refresh of the gift list
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    reloadGiftList();
+    setRefreshing(false);
+  }, [reloadGiftList, people]);
+
+  // Function to navigate to the "AddIdea" screen with the current personId
+  const navigateToAddIdea = React.useCallback(() => {
+    navigation.navigate("AddIdea", { personId: personId });
+  }, [navigation, personId]);
 
   return (
     <View
@@ -61,21 +81,23 @@ const IdeasScreen = ({ navigation }) => {
       ]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ flexDirection: "row" }}>
+      {/* Header displaying the person's name */}
+      <View style={globalStyles.row}>
         <Text style={[globalStyles.screenTitle]}>
-          Gifts for{" "}
-          <Text style={[globalStyles.screenTitle, globalStyles.primaryColor]}>
-            {person.name}
-          </Text>
+          Gifts for <Text style={[styles.nameStyle]}>{person.name}</Text>
         </Text>
       </View>
+
+      {/* Separator line */}
       <View style={[globalStyles.line]}></View>
+
+      {/* Gift list content */}
       <View style={[globalStyles.screenContent]}>
         <FlatList
           data={person.gifts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => renderItem(item)}
-          style={[globalStyles.peopleList, { paddingVertical: 30 }]}
+          style={[styles.listStyle]}
           ItemSeparatorComponent={<ListSeparatorComponent />}
           refreshControl={
             <RefreshControl
@@ -84,30 +106,45 @@ const IdeasScreen = ({ navigation }) => {
               tintColor={colors.primary_light}
             />
           }
+          // Empty list message when there are no gift ideas
           ListEmptyComponent={
             <EmptyList useCakeIcon={true}>
-              <Text style={[globalStyles.emptyListText, styles.padding]}>
-                {`No gift ideas for yet ${person.name} yet?`}
+              <Text style={[styles.emptyListStyle]}>
+                {`No gift ideas for ${person.name} yet?`}
               </Text>
             </EmptyList>
           }
         ></FlatList>
       </View>
 
+      {/* FAB (Floating Action Button) for adding a new gift */}
       {Platform.OS === "android" && (
         <FAB
           icon="plus"
           style={globalStyles.fab}
           label="Add Gift"
-          onPress={() => {
-            navigation.navigate("AddIdea", { personId: personId });
-          }}
+          onPress={navigateToAddIdea}
         />
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({});
+// Styles for the component
+const styles = StyleSheet.create({
+  nameStyle: {
+    ...globalStyles.screenTitle,
+    ...globalStyles.primaryColor,
+  },
+
+  listStyle: {
+    ...globalStyles.peopleList,
+    paddingVertical: 30,
+  },
+
+  emptyListStyle: {
+    ...globalStyles.emptyListText,
+  },
+});
 
 export default IdeasScreen;

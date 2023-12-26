@@ -1,15 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { AppProvider } from "./context/appContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import {
-  Button,
-  PaperProvider,
-  DefaultTheme,
-  ActivityIndicator,
-} from "react-native-paper";
+import { PaperProvider, ActivityIndicator } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
-// import { useFonts } from "expo-font";
 import * as Font from "expo-font";
 
 import {
@@ -23,27 +17,38 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { IOSAddPersonButton, IOSAddIdeaButton } from "./components";
 import { useEffect, useState } from "react";
 
-export default function App() {
-  // const [fontsLoaded] = useFonts({
-  //   "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
-  // });
+// Extracted Navigation Options
+const getPeopleScreenOptions = ({ navigation }) => ({
+  headerRight: () => Platform.OS === "ios" && <IOSAddPersonButton />,
+});
 
+const getAddPeopleScreenOptions = ({ route }) => ({
+  title: route.params && route.params.personId ? "Edit Person" : "Add Person",
+});
+
+const getIdeasScreenOptions = ({ navigation }) => ({
+  headerRight: () => Platform.OS === "ios" && <IOSAddIdeaButton />,
+});
+
+const getAddIdeaScreenOptions = ({ route }) => ({
+  title: route.params && route.params.giftId ? "Edit Idea" : "Add Idea",
+});
+
+const loadFonts = async () => {
+  try {
+    await Font.loadAsync({
+      "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
+    });
+  } catch (error) {
+    console.error("Error loading fonts:", error);
+  }
+};
+
+export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          "StickNoBills-Bold": require("./assets/fonts/StickNoBills-Bold.ttf"),
-        });
-        setFontsLoaded(true);
-      } catch (error) {
-        // Handle font loading error
-        console.error("Error loading fonts:", error);
-      }
-    };
-
-    loadFonts();
+    loadFonts().then(() => setFontsLoaded(true));
   }, []);
 
   const Stack = createNativeStackNavigator();
@@ -62,39 +67,23 @@ export default function App() {
                 <Stack.Screen
                   name="Home"
                   component={PeopleScreen}
-                  options={({ navigation }) => ({
-                    headerRight: () =>
-                      Platform.OS === "ios" ? <IOSAddPersonButton /> : null,
-                  })}
-                ></Stack.Screen>
+                  options={getPeopleScreenOptions}
+                />
                 <Stack.Screen
                   name="AddPeople"
                   component={AddPeopleScreen}
-                  options={({ route }) => {
-                    const personId = route.params && route.params.personId;
-                    return {
-                      title: personId ? "Edit Person" : "Add Person",
-                    };
-                  }}
-                ></Stack.Screen>
+                  options={getAddPeopleScreenOptions}
+                />
                 <Stack.Screen
                   name="Ideas"
                   component={IdeasScreen}
-                  options={({ navigation }) => ({
-                    headerRight: () =>
-                      Platform.OS === "ios" ? <IOSAddIdeaButton /> : null,
-                  })}
-                ></Stack.Screen>
+                  options={getIdeasScreenOptions}
+                />
                 <Stack.Screen
                   name="AddIdea"
                   component={AddIdeaScreen}
-                  options={({ route }) => {
-                    const giftId = route.params && route.params.giftId;
-                    return {
-                      title: giftId ? "Edit Idea" : "Add Idea",
-                    };
-                  }}
-                ></Stack.Screen>
+                  options={getAddIdeaScreenOptions}
+                />
               </Stack.Navigator>
             </AppProvider>
           </NavigationContainer>
@@ -112,9 +101,3 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-<Button
-  icon={"plus"}
-  onPress={() => {
-    navigation.navigate("AddPeople", {});
-  }}
-></Button>;

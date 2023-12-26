@@ -11,8 +11,6 @@ import { DisabledCameraView } from "../components";
 import { EMPTY_GIFT } from "../util/constants";
 import { useRoute } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system";
-import { getShortFileName } from "../util/util";
 
 const MODE = {
   SHOW_REAL_IMAGE: "SHOW_REAL_IMAGE",
@@ -21,12 +19,13 @@ const MODE = {
 };
 
 const AddIdeaScreen = () => {
-  const { currentPersonId, setCurrentPersonId } = useApp();
+  const { currentPersonId, isRealDevice } = useApp();
   const insets = useSafeAreaInsets();
   const [type, setType] = useState(CameraType.back);
   const [mode, setMode] = useState(MODE.SHOW_REAL_IMAGE);
-  const [cameraPermission, setCameraPermission] = useState(null);
+  const [cameraPermission, setCameraPermission] = useState(false);
   const [camera, setCamera] = useState(null);
+  const [takePhotoButtonDisabled, setTakePhotoButtonDisabled] = useState(false);
 
   const { addGift, deleteGift, findGift } = useApp();
   const giftIdeaRef = useRef();
@@ -53,37 +52,43 @@ const AddIdeaScreen = () => {
       }
     };
     checkCameraPermission();
+
+    console.log("real device", isRealDevice);
   }, []);
 
   useEffect(() => {
-    if (giftId && currentPersonId) {
-      const foundGift = findGift(currentPersonId, giftId);
-      if (foundGift) {
-        draftImageRef.current = "";
-        if (foundGift.image) {
-          imageRef.current = foundGift.image;
-          setMode(MODE.SHOW_REAL_IMAGE);
+    const initializeCameraMode = async () => {
+      if (giftId && currentPersonId) {
+        const foundGift = findGift(currentPersonId, giftId);
+        if (foundGift) {
+          draftImageRef.current = "";
+          if (foundGift.image) {
+            imageRef.current = foundGift.image;
+            setMode(MODE.SHOW_REAL_IMAGE);
+          } else {
+            imageRef.current = "";
+            setMode(MODE.SHOW_LIVE_CAMERA);
+          }
+          setIdea({ ...foundGift });
         } else {
-          imageRef.current = "";
-          setMode(MODE.SHOW_LIVE_CAMERA);
+          // this is an error
+          console.error("What a mess");
         }
-        setIdea({ ...foundGift });
+        // get the gift
       } else {
-        // this is an error
-        console.error("What a mess");
+        setMode(MODE.SHOW_LIVE_CAMERA);
       }
-      // get the gift
-    } else {
-      setMode(MODE.SHOW_LIVE_CAMERA);
-    }
 
-    if (giftIdeaRef && giftIdeaRef.current) {
-      giftIdeaRef.current.focus();
-    }
+      if (giftIdeaRef && giftIdeaRef.current) {
+        giftIdeaRef.current.focus();
+      }
+    };
+
+    initializeCameraMode();
   }, [giftId, currentPersonId]);
 
-  const cameraComponent = useMemo(() => {
-    if (cameraPermission) {
+  const cameraComponent = () => {
+    if (isRealDevice && cameraPermission) {
       return (
         <Camera
           style={[styles.imageLiveCameraContainer]}
@@ -108,7 +113,7 @@ const AddIdeaScreen = () => {
         <DisabledCameraView />
       </View>
     );
-  }, [cameraPermission, type, toggleCameraType]);
+  };
 
   const takePicture = async () => {
     if (cameraPermission) {
@@ -149,6 +154,19 @@ const AddIdeaScreen = () => {
     }
   };
 
+  const handleTakeAPicture = async () => {
+    // setTakePhotoButtonDisabled(true);
+
+    console.log("xxx");
+    try {
+      await takePicture();
+      setMode(MODE.SHOW_DRAFT_IMAGE);
+    } catch (error) {
+      console.error(error);
+    }
+    // setTakePhotoButtonDisabled(false);
+  };
+
   return (
     <KeyboardAvoidingView
       style={[
@@ -187,17 +205,13 @@ const AddIdeaScreen = () => {
           <View style={styles.mediaContainer}>
             {mode === MODE.SHOW_LIVE_CAMERA && (
               <View>
-                {cameraComponent}
+                {cameraComponent()}
                 <View style={[globalStyles.buttonContainer]}>
                   <Button
                     style={[globalStyles.button, globalStyles.lightButton]}
-                    onPress={async () => {
-                      try {
-                        await takePicture();
-                        setMode(MODE.SHOW_DRAFT_IMAGE);
-                      } catch (error) {
-                        console.error(error);
-                      }
+                    onPress={() => {
+                      console.log("aaaa");
+                      handleTakeAPicture();
                     }}
                   >
                     <Text>Take a Picture</Text>
@@ -296,7 +310,6 @@ const AddIdeaScreen = () => {
                         : globalStyles.lightButton,
                     ]}
                     onPress={() => {
-                      // return;
                       addGift({
                         text: idea.text,
                         id: giftId,

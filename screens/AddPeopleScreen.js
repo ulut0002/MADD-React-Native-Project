@@ -15,41 +15,64 @@ import { DateTime } from "luxon";
 import { EMPTY_PERSON } from "../util/constants";
 import { useRoute } from "@react-navigation/native";
 import _ from "lodash";
+import { produce } from "immer";
 
+// Component for adding and updating people
 const AddPeopleScreen = () => {
-  const {
-    addPerson,
-    deletePerson,
-    deletePersonWithConfirm,
-    findPerson,
-    setCurrentPerson,
-    setNewPerson,
-  } = useApp();
+  // Destructuring various functions from the app context
+  const { addPersonAsync, deletePersonWithConfirm, findPerson } = useApp();
 
+  // Extracting personId from the route parameters
   const { personId } = useRoute().params;
 
+  // State variables to manage person data and date of birth
   const [person, setPerson] = useState({ ...EMPTY_PERSON });
   const [DOB, setDOB] = useState(); // default value must remain blank
   const insets = useSafeAreaInsets();
   const textFieldRef = useRef(null);
+  const [disableAddButton, setDisableAddButton] = useState(true);
 
-  const shouldDisableButton = () => {
-    return !person.name.trim() || !DOB;
-  };
-
+  // Effect hook to initialize the component asynchronously
   useEffect(() => {
-    let foundPerson = findPerson(personId);
-    if (!foundPerson) foundPerson = _.cloneDeep(EMPTY_PERSON);
-    setPerson(_.cloneDeep(foundPerson));
-    let dt = foundPerson.dob ? foundPerson.dob : DateTime.now();
-    setDOB(formatDateForCalendar(dt));
+    const initializeAsync = async () => {
+      // Finding the person using personId or using an empty person object
+      let foundPerson = findPerson(personId);
+      if (!foundPerson) foundPerson = EMPTY_PERSON;
+      setPerson(_.cloneDeep(foundPerson));
 
-    // focus on the text field
-    if (textFieldRef && textFieldRef.current) {
-      textFieldRef.current.focus();
-    }
+      // Setting the date of birth, defaulting to the current date if not available
+      let dt = foundPerson.dob ? foundPerson.dob : DateTime.now();
+      setDOB(formatDateForCalendar(dt));
+
+      // Focusing on the text field
+      if (textFieldRef && textFieldRef.current) {
+        textFieldRef.current.focus();
+      }
+    };
+
+    initializeAsync();
   }, [personId]);
 
+  const handleNameChange = (value = "") => {
+    setDisableAddButton(!value.trim() || !DOB);
+
+    setPerson(
+      produce((draftState) => {
+        draftState.name = value;
+      })
+    );
+  };
+
+  const handleDobChange = (value) => {
+    // Update local state and context state based on personId
+    setDisableAddButton(!person.name.trim() || !value);
+
+    setDOB(
+      produce((draftState) => {
+        draftState.dob = createLuxonDate(value);
+      })
+    );
+  };
   return (
     <KeyboardAvoidingView
       style={[
@@ -64,22 +87,15 @@ const AddPeopleScreen = () => {
       ]}
     >
       <View style={[globalStyles.inputContainer]}>
+        {/* Input for person's name */}
         <Text style={[globalStyles.inputLabel]}>Name</Text>
 
         <TextInput
           value={person.name}
           ref={textFieldRef}
-          placeholderTextColor={"#cccccc"}
+          placeholderTextColor={colors.text_field_place_holder_color}
           onChangeText={(value) => {
-            if (personId) {
-              const obj = { ...person, name: value };
-              setCurrentPerson({ ...obj });
-              setPerson({ ...obj });
-            } else {
-              const obj = { ...person, name: value };
-              setPerson({ ...obj });
-              setNewPerson({ ...obj }); // update context
-            }
+            handleNameChange(value);
           }}
           style={[globalStyles.input]}
           placeholder={"Enter a name"}
@@ -89,8 +105,10 @@ const AddPeopleScreen = () => {
           keyboardType="default"
           returnKeyType="next"
         ></TextInput>
+
+        {/* Date picker for person's birthday */}
         {DOB && (
-          <View style={{ marginTop: 20 }}>
+          <View style={[styles.dobContainer]}>
             <Text style={[globalStyles.inputLabel]}>Birthday</Text>
             <DatePicker
               mode="calendar"
@@ -99,51 +117,52 @@ const AddPeopleScreen = () => {
               current={DOB}
               options={{
                 backgroundColor: colors.background,
-                textHeaderColor: "#FFA25B",
-                textDefaultColor: "#F6E7C1",
-                selectedTextColor: "#fff",
-                mainColor: "#F4722B",
-                textSecondaryColor: "#D6C7A1",
-                borderColor: colors.accent,
+                textHeaderColor: colors.calendar_text_header_color,
+                textDefaultColor: colors.calendar_text_default_color,
+                selectedTextColor: colors.calendar_text_selected_text_color,
+                mainColor: colors.calendar_main_color,
+                textSecondaryColor: colors.calendar_text_secondary_color,
+                borderColor: colors.calendar_border_color,
               }}
               onDateChange={(val) => {
-                if (personId) {
-                  const obj = { ...person, dob: createLuxonDate(val) };
-                  setDOB(val);
-                  setCurrentPerson({ ...obj }); // update context
-                } else {
-                  const obj = { ...person, dob: createLuxonDate(val) };
-                  setDOB(val);
-                  setNewPerson({ ...obj }); // update context
-                }
+                handleDobChange(val);
               }}
             ></DatePicker>
           </View>
         )}
       </View>
 
+      {/* Button container for adding/updating and deleting person */}
       <View style={[globalStyles.buttonContainer]}>
         <Button
           onPress={() => {
+            // Create payload for adding/updating person
             const personPayload = {
               ...EMPTY_PERSON,
               id: personId,
               name: person.name,
               dob: createLuxonDate(DOB),
             };
-            addPerson(personPayload);
+            setDisableAddButton(true);
+            addPersonAsync(personPayload)
+              .then(() => {
+                setDisableAddButton(false);
+              })
+              .catch((error) => {
+                setDisableAddButton(false);
+              });
           }}
-          disabled={shouldDisableButton()}
+          disabled={disableAddButton}
           style={[
             globalStyles.button,
-            shouldDisableButton()
+            disableAddButton
               ? globalStyles.disabledButton
               : globalStyles.lightButton,
           ]}
         >
           <Text
             style={[
-              shouldDisableButton()
+              disableAddButton
                 ? globalStyles.disableText
                 : globalStyles.lightText,
             ]}
@@ -151,16 +170,15 @@ const AddPeopleScreen = () => {
             {personId ? `Update Person` : `Add Person`}
           </Text>
         </Button>
+
+        {/* Button to delete person (visible only if personId is present) */}
+
         {personId && (
           <Button
             style={[globalStyles.button, globalStyles.lightButton]}
             onPress={async () => {
               deletePersonWithConfirm(personId)
-                .then((deleted) => {
-                  if (deleted) {
-                  } else {
-                  }
-                })
+                .then((deleted) => {})
                 .catch((error) => {
                   console.warn(error);
                 });
@@ -174,6 +192,10 @@ const AddPeopleScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  dobContainer: {
+    marginTop: 20,
+  },
+});
 
 export default AddPeopleScreen;

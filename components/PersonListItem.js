@@ -12,14 +12,12 @@ import { DEFAULT_BIRTHDAY_HIGHLIGHT, EMPTY_PERSON } from "../util/constants";
 import GiftSummary from "./GiftSummary";
 import { globalStyles } from "../styles/globalStyles";
 import { getBirthdayDefinition } from "../util/util";
-// import { getDateDifference } from "../util/util";
 
 // source: https://dribbble.com/shots/16577502-Mobile-List-UI
 
 const PersonListItem = ({ person }) => {
   const navigation = useNavigation();
-  const { deletePerson, deletePersonWithConfirm, setCurrentPersonId } =
-    useApp();
+  const { deletePerson, deletePersonWithConfirm } = useApp();
 
   const [personObject, setPersonObject] = useState(_.cloneDeep(EMPTY_PERSON));
 
@@ -67,15 +65,6 @@ const PersonListItem = ({ person }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 12,
-    gap: 12,
-  },
-
   name: {
     fontWeight: "bold",
     fontSize: 22,
